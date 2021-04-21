@@ -143,14 +143,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatefulWidget {
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreen extends StatelessWidget {
   String? _enteredOTP;
-
   static const _phoneNumber = "+919876543210";
 
   @override
@@ -162,7 +156,11 @@ class _HomeScreenState extends State<HomeScreen> {
         onLoginSuccess: (userCredential) async {
           print("Login Success UID: ${userCredential.user?.uid}");
         },
-        onLoginFailed: (e) => print("ERROR: ${e.message}"),
+        onLoginFailed: (authException) {
+          print("An error occurred: ${authException.message}");
+
+          // handle error further if needed
+        },
         builder: (controller) {
           return Scaffold(
             appBar: AppBar(

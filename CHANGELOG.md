@@ -1,3 +1,8 @@
+## [0.0.4] - 21/04/2021
+
+* Updated example app
+* Updated README.md
+
 ## [0.0.3] - 21/04/2021
 
 * Updated screenshots

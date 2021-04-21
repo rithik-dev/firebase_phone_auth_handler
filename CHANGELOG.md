@@ -1,3 +1,8 @@
+## [0.0.3] - 21/04/2021
+
+* Updated screenshots
+* Updated package description
+
 ## [0.0.2] - 21/04/2021
 
 * Added FirebasePhoneAuthSupporter which has to be wrapped above the MaterialApp in order for the app to support phone authentication.

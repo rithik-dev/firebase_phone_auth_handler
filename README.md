@@ -4,10 +4,10 @@
 [![popularity](https://badges.bar/firebase_phone_auth_handler/popularity)](https://pub.dev/packages/firebase_phone_auth_handler/score)
 [![pub points](https://badges.bar/firebase_phone_auth_handler/pub%20points)](https://pub.dev/packages/firebase_phone_auth_handler/score)
 
-* An easy-to-use firebase phone authentication package to easily send and verify OTP's via SMS.
+* An easy-to-use firebase phone authentication package to easily send and verify OTP's with auto-fetch OTP support via SMS.
 
 ## Screenshots
-<img src="https://user-images.githubusercontent.com/56810766/115531645-a91c1380-a2b2-11eb-8890-b4524030c85b.png" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115531636-a7525000-a2b2-11eb-85db-76b1b0f284ae.png" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115531641-a91c1380-a2b2-11eb-927d-42e469e0206f.png" height=600/>
+<img src="https://user-images.githubusercontent.com/56810766/115599399-341ffc80-a2f9-11eb-9410-ffd1a254caf6.jpeg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599396-33876600-a2f9-11eb-9516-d0f189b88a53.jpeg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599390-31bda280-a2f9-11eb-8990-d3df76d3aabc.jpg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599398-33876600-a2f9-11eb-9a3a-61e073212c7b.jpeg" height=600/>
 
 ## Getting Started
 <b>Step 1</b>: Before you can add Firebase to your app, you need to create a Firebase project to connect to your application.

@@ -4,7 +4,7 @@
 [![popularity](https://badges.bar/firebase_phone_auth_handler/popularity)](https://pub.dev/packages/firebase_phone_auth_handler/score)
 [![pub points](https://badges.bar/firebase_phone_auth_handler/pub%20points)](https://pub.dev/packages/firebase_phone_auth_handler/score)
 
-* An easy to use firebase phone authentication package to easily send and verify OTP's.
+* An easy-to-use firebase phone authentication package to easily send and verify OTP's via SMS.
 
 ## Screenshots
 <img src="https://user-images.githubusercontent.com/56810766/115531645-a91c1380-a2b2-11eb-8890-b4524030c85b.png" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115531636-a7525000-a2b2-11eb-85db-76b1b0f284ae.png" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115531641-a91c1380-a2b2-11eb-927d-42e469e0206f.png" height=600/>
@@ -17,7 +17,7 @@ Visit [`Understand Firebase Projects`](https://firebase.google.com/docs/projects
 
 <b> Step 3</b>: Add a Firebase configuration file and the SDK's. (google-services)
 
-<b> Step 4</b>: When the basic setup is done,open the console and then the
+<b> Step 4</b>: When the basic setup is done, open the console and then the
 project and head over to `Authentication` from the left drawer menu.
 
 <b> Step 5</b>: Click on `Sign-in method` next to the `Users` tab and enable `Phone`.
@@ -53,14 +53,22 @@ First and foremost, import the widget.
 import 'package:firebase_phone_auth_handler/firebase_phone_auth_handler.dart';
 ```
 
+Wrap the `MaterialApp` with `FirebasePhoneAuthSupporter` to enable your application to support phone authentication like shown.
+```dart
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FirebasePhoneAuthSupporter(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: HomeScreen(),
+      ),
+    );
+  }
+}
+```
+
 You can now add a [`FirebasePhoneAuthHandler`](https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/lib/firebase_phone_auth_handler.dart) widget to your widget tree and pass all the required parameters to get started.
-
-The phone number is the number to which the OTP will be sent which should be formatted in the following way:
-
-+919876543210 - where +91 is the country code and 9876543210 is the phone number.
-
-The widget returned from the builder is rendered on the screen.
-The builder exposes a controller which contains various variables and methods.
 ```dart
 FirebasePhoneAuthHandler(
     phoneNumber: "+919876543210",
@@ -70,15 +78,22 @@ FirebasePhoneAuthHandler(
 ),
 ```
 
-Callbacks such as onLoginSuccess or onLoginFailed can be passed to the widget.
+The phone number is the number to which the OTP will be sent which should be formatted in the following way:
 
-onLoginSuccess is called whenever the otp was sent to the mobile successfully and
-was either auto verified or verified manually by calling verifyOTP function in the
-controller. The callback exposes UserCredential object which can be used to find
++919876543210 - where +91 is the country code and 9876543210 is the phone number.
+
+The widget returned from the `builder` is rendered on the screen.
+The builder exposes a `controller` which contains various variables and methods.
+
+Callbacks such as `onLoginSuccess` or `onLoginFailed` can be passed to the widget.
+
+`onLoginSuccess` is called whenever the otp was sent to the mobile successfully and
+was either auto verified or verified manually by calling `verifyOTP` function in the
+controller. The callback exposes `UserCredential` object which can be used to find
 user UID and other stuff.
 
-onLoginFailed is called if an error occurs while sending OTP or verifying the OTP
-or any internal error occurs, callback is triggered exposing FirebaseAuthException
+`onLoginFailed` is called if an error occurs while sending OTP or verifying the OTP
+or any internal error occurs, callback is triggered exposing `FirebaseAuthException`
 which can be used to handle the error.
 
 ```dart
@@ -96,8 +111,13 @@ FirebasePhoneAuthHandler(
 ),
 ```
 
-To logout the current user(if any), simply call `controller.signOut()` in the
-same screen as the widget itself (where `controller` is the variable passed in the callback from the builder method in the widget).
+To logout the current user(if any), simply call
+```dart
+await FirebasePhoneAuthHandler.signOut(context);
+```
+
+`controller.signOut()` can also be used to logout the current user if the functionality is needed in
+the same screen as the widget itself (where `controller` is the variable passed in the callback from the builder method in the widget).
 
 Sample Usage
 ```dart
@@ -114,9 +134,11 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
+    return FirebasePhoneAuthSupporter(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: HomeScreen(),
+      ),
     );
   }
 }

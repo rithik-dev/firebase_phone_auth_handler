@@ -1,7 +1,7 @@
 name: firebase_phone_auth_handler
 description: An easy to use firebase phone authentication library to easily send and verify OTP's.
 version: 0.0.1
-homepage:
+homepage: https://github.com/rithik-dev/firebase_phone_auth_handler
 
 environment:
   sdk: ">=2.12.0 <3.0.0"

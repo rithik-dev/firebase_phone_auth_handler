@@ -1,4 +1,4 @@
-library firebase_phone_auth_service;
+library firebase_phone_auth_handler;
 
 import 'dart:async';
 
@@ -51,17 +51,17 @@ class FirebasePhoneAuthHandler extends StatelessWidget {
 
   /// {@template builder}
   /// The widget returned by the `builder` is rendered on to the screen and
-  /// builder is called every time a value changes i.e. either the timer or any
+  /// builder is called every time a value changes i.e. either the timerCount or any
   /// other value.
   /// {@endtemplate}
   final Widget Function(FirebasePhoneAuthService) builder;
 
+  /// FIXME: Provider error
   /// {@template signOut}
   /// Signs out the current user.
   /// {@endtemplate}
-  static Future<void> signOut(BuildContext context) {
-    return Provider.of<FirebasePhoneAuthService>(context).signOut();
-  }
+  // static Future<void> signOut(BuildContext context) =>
+  //     Provider.of<FirebasePhoneAuthService>(context, listen: false).signOut();
 
   @override
   Widget build(BuildContext context) {

@@ -53,14 +53,30 @@ class FirebasePhoneAuthService extends ChangeNotifier {
   /// {@macro timeOutDuration}
   static Duration _timeoutDuration = TIME_OUT_DURATION;
 
-  /// Verify the OTP sent to [_phoneNumber].
-  Future<void> verifyOTP({required String otp}) async {
-    if (_verificationId == null) return;
-    final credential = PhoneAuthProvider.credential(
-      verificationId: _verificationId!,
-      smsCode: otp,
-    );
-    await loginUser(credential);
+  /// Verify the OTP sent to [_phoneNumber] and login user is OTP was correct.
+  ///
+  /// Returns true if the [otp] passed was correct and the user was logged in successfully.
+  /// On login success, [_onLoginSuccess] is called.
+  ///
+  /// If the [otp] passed is incorrect, or the [otp] is expired or any other
+  /// error occurs, the functions returns false.
+  ///
+  /// Also, [_onLoginFailed] is called with [FirebaseAuthException]
+  /// object to handle the error.
+  Future<bool> verifyOTP({required String otp}) async {
+    if (_verificationId == null) return false;
+    try {
+      final credential = PhoneAuthProvider.credential(
+        verificationId: _verificationId!,
+        smsCode: otp,
+      );
+      return await loginUser(credential);
+    } on FirebaseAuthException catch (e) {
+      if (_onLoginFailed != null) _onLoginFailed!(e);
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
 
   /// Clear all data
@@ -78,7 +94,13 @@ class FirebasePhoneAuthService extends ChangeNotifier {
   }
 
   /// Send OTP to the given [_phoneNumber].
-  Future<void> sendOTP() async {
+  ///
+  /// Returns true if OTP was sent successfully.
+  ///
+  /// If for any reason, the OTP is not send,
+  /// [_onLoginFailed] is called with [FirebaseAuthException]
+  /// object to handle the error.
+  Future<bool> sendOTP() async {
     // this.clear();
     _auth ??= FirebaseAuth.instance;
 
@@ -130,17 +152,36 @@ class FirebasePhoneAuthService extends ChangeNotifier {
         timeout: _timeoutDuration,
         forceResendingToken: _forceResendingToken,
       );
+
+      return true;
+    } on FirebaseAuthException catch (e) {
+      if (_onLoginFailed != null) _onLoginFailed!(e);
+      return false;
     } catch (e) {
-      print(e);
+      return false;
     }
   }
 
   /// Called when the otp is verified either automatically (OTP auto fetched)
   /// or [verifyOTP] was called with the correct OTP.
-  FutureOr<void> loginUser(AuthCredential authCredential) async {
-    _auth ??= FirebaseAuth.instance;
-    final authResult = await _auth!.signInWithCredential(authCredential);
-    if (_onLoginSuccess != null) return _onLoginSuccess!(authResult);
+  ///
+  /// If true is returned that means the user was logged in successfully.
+  ///
+  /// If for any reason, the user fails to login,
+  /// [_onLoginFailed] is called with [FirebaseAuthException]
+  /// object to handle the error and false is returned.
+  Future<bool> loginUser(AuthCredential authCredential) async {
+    try {
+      _auth ??= FirebaseAuth.instance;
+      final authResult = await _auth!.signInWithCredential(authCredential);
+      if (_onLoginSuccess != null) _onLoginSuccess!(authResult);
+      return true;
+    } on FirebaseAuthException catch (e) {
+      if (_onLoginFailed != null) _onLoginFailed!(e);
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
 
   /// {@macro signOut}

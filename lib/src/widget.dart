@@ -62,9 +62,7 @@ class _FirebasePhoneAuthWidgetState extends State<FirebasePhoneAuthWidget> {
   @override
   Widget build(BuildContext context) {
     return Consumer<FirebasePhoneAuthService>(
-      builder: (context, controller, child) {
-        return this.widget.builder(controller);
-      },
+      builder: (context, controller, child) => this.widget.builder(controller),
     );
   }
 }

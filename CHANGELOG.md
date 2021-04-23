@@ -1,3 +1,9 @@
+## [0.0.5] - 23/04/2021
+
+* Added boolean in onLoginSuccess to provide info whether OTP was auto fetched or verified manually
+* Updated example app
+* Updated README.md
+
 ## [0.0.4] - 21/04/2021
 
 * Updated example app

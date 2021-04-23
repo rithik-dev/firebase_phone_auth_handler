@@ -27,13 +27,16 @@ class FirebasePhoneAuthService extends ChangeNotifier {
   /// Whether OTP to the given phoneNumber is sent or not.
   bool codeSent = false;
 
-  FutureOr<void> Function(UserCredential)? _onLoginSuccess;
+  /// {@macro onLoginSuccess}
+  FutureOr<void> Function(UserCredential, bool)? _onLoginSuccess;
+
+  /// {@macro onLoginFailed}
   FutureOr<void> Function(FirebaseAuthException)? _onLoginFailed;
 
   /// Set callbacks and other data
   void setData({
     required String phoneNumber,
-    required FutureOr<void> Function(UserCredential)? onLoginSuccess,
+    required FutureOr<void> Function(UserCredential, bool)? onLoginSuccess,
     required FutureOr<void> Function(FirebaseAuthException)? onLoginFailed,
     Duration timeOutDuration = TIME_OUT_DURATION,
   }) {
@@ -70,7 +73,7 @@ class FirebasePhoneAuthService extends ChangeNotifier {
         verificationId: _verificationId!,
         smsCode: otp,
       );
-      return await loginUser(credential);
+      return await loginUser(authCredential: credential, autoVerified: false);
     } on FirebaseAuthException catch (e) {
       if (_onLoginFailed != null) _onLoginFailed!(e);
       return false;
@@ -111,7 +114,7 @@ class FirebasePhoneAuthService extends ChangeNotifier {
 
     final PhoneVerificationCompleted verificationCompleted =
         (AuthCredential authCredential) async {
-      await loginUser(authCredential);
+      await loginUser(authCredential: authCredential, autoVerified: true);
     };
 
     final PhoneVerificationFailed verificationFailed = (
@@ -170,11 +173,14 @@ class FirebasePhoneAuthService extends ChangeNotifier {
   /// If for any reason, the user fails to login,
   /// [_onLoginFailed] is called with [FirebaseAuthException]
   /// object to handle the error and false is returned.
-  Future<bool> loginUser(AuthCredential authCredential) async {
+  Future<bool> loginUser({
+    required AuthCredential authCredential,
+    required bool autoVerified,
+  }) async {
     try {
       _auth ??= FirebaseAuth.instance;
       final authResult = await _auth!.signInWithCredential(authCredential);
-      if (_onLoginSuccess != null) _onLoginSuccess!(authResult);
+      if (_onLoginSuccess != null) _onLoginSuccess!(authResult, autoVerified);
       return true;
     } on FirebaseAuthException catch (e) {
       if (_onLoginFailed != null) _onLoginFailed!(e);

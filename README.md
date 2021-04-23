@@ -90,7 +90,8 @@ Callbacks such as `onLoginSuccess` or `onLoginFailed` can be passed to the widge
 `onLoginSuccess` is called whenever the otp was sent to the mobile successfully and
 was either auto verified or verified manually by calling `verifyOTP` function in the
 controller. The callback exposes `UserCredential` object which can be used to find
-user UID and other stuff.
+user UID and other stuff. The boolean provided is whether the OTP was auto verified or
+verified manually be calling `verifyOTP`. True if auto verified and false is verified manually.
 
 `onLoginFailed` is called if an error occurs while sending OTP or verifying the OTP
 or any internal error occurs, callback is triggered exposing `FirebaseAuthException`
@@ -102,7 +103,8 @@ FirebasePhoneAuthHandler(
     builder: (controller) {
       return SizedBox.shrink();
     },
-    onLoginSuccess: (userCredential) {
+    onLoginSuccess: (userCredential, autoVerified) {
+      print("autoVerified: $autoVerified");
       print("Login success UID: ${userCredential.user?.uid}");
     },
     onLoginFailed: (authException) {
@@ -153,7 +155,11 @@ class HomeScreen extends StatelessWidget {
       child: FirebasePhoneAuthHandler(
         phoneNumber: _phoneNumber,
         timeOutDuration: const Duration(seconds: 60),
-        onLoginSuccess: (userCredential) async {
+        onLoginSuccess: (userCredential, autoVerified) async {
+          print(autoVerified
+              ? "OTP was fetched automatically"
+              : "OTP was verified manually");
+
           print("Login Success UID: ${userCredential.user?.uid}");
         },
         onLoginFailed: (authException) {

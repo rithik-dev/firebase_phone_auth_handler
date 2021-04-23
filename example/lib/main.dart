@@ -31,7 +31,11 @@ class HomeScreen extends StatelessWidget {
       child: FirebasePhoneAuthHandler(
         phoneNumber: _phoneNumber,
         timeOutDuration: const Duration(seconds: 60),
-        onLoginSuccess: (userCredential) async {
+        onLoginSuccess: (userCredential, autoVerified) async {
+          print(autoVerified
+              ? "OTP was fetched automatically"
+              : "OTP was verified manually");
+          
           print("Login Success UID: ${userCredential.user?.uid}");
         },
         onLoginFailed: (authException) {

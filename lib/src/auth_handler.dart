@@ -27,8 +27,13 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   /// This callback is triggered when the phone number is verified and the user is
   /// signed in successfully. The function provides [UserCredential] which contains
   /// essential user information.
+  ///
+  /// The boolean provided is whether the OTP was auto verified or
+  /// verified manually be calling [verifyOTP].
+  ///
+  /// True if auto verified and false is verified manually.
   /// {@endtemplate}
-  final FutureOr<void> Function(UserCredential)? onLoginSuccess;
+  final FutureOr<void> Function(UserCredential, bool)? onLoginSuccess;
 
   /// {@template onLoginFailed}
   /// This callback is triggered if the phone verification fails. The callback provides

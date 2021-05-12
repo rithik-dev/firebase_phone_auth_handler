@@ -7,12 +7,13 @@ import 'package:provider/provider.dart';
 
 class FirebasePhoneAuthHandler extends StatefulWidget {
   const FirebasePhoneAuthHandler({
+    Key? key,
     required this.phoneNumber,
     required this.builder,
     this.onLoginFailed,
     this.onLoginSuccess,
     this.timeOutDuration = FirebasePhoneAuthService.TIME_OUT_DURATION,
-  });
+  }) : super(key: key);
 
   /// {@template phoneNumber}
   /// The phone number to which the OTP is to be sent.
@@ -29,7 +30,7 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   /// essential user information.
   ///
   /// The boolean provided is whether the OTP was auto verified or
-  /// verified manually be calling [verifyOTP].
+  /// verified manually by calling [verifyOTP].
   ///
   /// True if auto verified and false is verified manually.
   /// {@endtemplate}

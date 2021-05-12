@@ -5,17 +5,18 @@ import 'package:provider/provider.dart';
 /// Wrap the [MaterialApp] with [FirebasePhoneAuthSupporter]
 /// to enable your application to support phone authentication.
 class FirebasePhoneAuthSupporter extends StatelessWidget {
-  const FirebasePhoneAuthSupporter({required this.child});
+  const FirebasePhoneAuthSupporter({
+    Key? key,
+    required this.child,
+  }) : super(key: key);
 
   /// The child of the widget.
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => FirebasePhoneAuthService())
-      ],
+    return ChangeNotifierProvider(
+      create: (_) => FirebasePhoneAuthService(),
       child: this.child,
     );
   }

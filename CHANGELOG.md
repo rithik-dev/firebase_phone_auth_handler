@@ -1,3 +1,9 @@
+## [0.0.6] - 12/05/2021
+
+* Added key parameter
+* Fixed README.md
+* Updated dependencies
+
 ## [0.0.5] - 23/04/2021
 
 * Added boolean in onLoginSuccess to provide info whether OTP was auto fetched or verified manually

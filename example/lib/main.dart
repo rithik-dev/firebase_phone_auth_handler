@@ -11,7 +11,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return FirebasePhoneAuthSupporter(
+    return FirebasePhoneAuthProvider(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         home: HomeScreen(),
@@ -35,7 +35,7 @@ class HomeScreen extends StatelessWidget {
           print(autoVerified
               ? "OTP was fetched automatically"
               : "OTP was verified manually");
-          
+
           print("Login Success UID: ${userCredential.user?.uid}");
         },
         onLoginFailed: (authException) {
@@ -43,7 +43,7 @@ class HomeScreen extends StatelessWidget {
 
           // handle error further if needed
         },
-        builder: (controller) {
+        builder: (context, controller) {
           return Scaffold(
             appBar: AppBar(
               title: Text("Verification Code"),

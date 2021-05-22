@@ -2,10 +2,10 @@ import 'package:firebase_phone_auth_handler/src/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-/// Wrap the [MaterialApp] with [FirebasePhoneAuthSupporter]
+/// Wrap the [MaterialApp] with [FirebasePhoneAuthProvider]
 /// to enable your application to support phone authentication.
-class FirebasePhoneAuthSupporter extends StatelessWidget {
-  const FirebasePhoneAuthSupporter({
+class FirebasePhoneAuthProvider extends StatelessWidget {
+  const FirebasePhoneAuthProvider({
     Key? key,
     required this.child,
   }) : super(key: key);

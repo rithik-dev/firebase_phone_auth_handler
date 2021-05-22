@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_phone_auth_handler/src/auth_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -13,6 +14,7 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
     this.onLoginFailed,
     this.onLoginSuccess,
     this.timeOutDuration = FirebasePhoneAuthService.TIME_OUT_DURATION,
+    this.recaptchaVerifierForWebProvider,
   }) : super(key: key);
 
   /// {@template phoneNumber}
@@ -52,12 +54,25 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   /// {@endtemplate}
   final Duration timeOutDuration;
 
+  /// {@template recaptchaVerifierForWeb}
+  /// Custom reCAPTCHA for web-based authentication.
+  ///
+  /// The boolean in the function is provided which can be used to check
+  /// whether the platform is web or not.
+  ///
+  /// NOTE : Only pass a [RecaptchaVerifier] instance if you're on web, else an error occurs.
+  /// {@endtemplate}
+  final RecaptchaVerifier? Function(bool)? recaptchaVerifierForWebProvider;
+
   /// {@template builder}
   /// The widget returned by the `builder` is rendered on to the screen and
   /// builder is called every time a value changes i.e. either the timerCount or any
   /// other value.
+  ///
+  /// The builder provides a controller which can be used to render the UI based
+  /// on the current state.
   /// {@endtemplate}
-  final Widget Function(FirebasePhoneAuthService) builder;
+  final Widget Function(BuildContext, FirebasePhoneAuthService) builder;
 
   /// {@template signOut}
   /// Signs out the current user.
@@ -77,11 +92,16 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
       final _con =
           Provider.of<FirebasePhoneAuthService>(context, listen: false);
 
+      RecaptchaVerifier? _captcha;
+      if (this.widget.recaptchaVerifierForWebProvider != null)
+        _captcha = this.widget.recaptchaVerifierForWebProvider!(kIsWeb);
+
       _con.setData(
         phoneNumber: this.widget.phoneNumber,
         onLoginSuccess: this.widget.onLoginSuccess,
         onLoginFailed: this.widget.onLoginFailed,
         timeOutDuration: this.widget.timeOutDuration,
+        recaptchaVerifierForWeb: _captcha,
       );
 
       await _con.sendOTP();
@@ -91,14 +111,17 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
 
   @override
   void dispose() {
-    Provider.of<FirebasePhoneAuthService>(context, listen: false).clear();
+    try {
+      Provider.of<FirebasePhoneAuthService>(context, listen: false).clear();
+    } catch (e) {}
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<FirebasePhoneAuthService>(
-      builder: (context, controller, child) => this.widget.builder(controller),
+      builder: (context, controller, child) =>
+          this.widget.builder(context, controller),
     );
   }
 }

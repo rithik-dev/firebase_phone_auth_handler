@@ -5,6 +5,7 @@
 [![pub points](https://badges.bar/firebase_phone_auth_handler/pub%20points)](https://pub.dev/packages/firebase_phone_auth_handler/score)
 
 * An easy-to-use firebase phone authentication package to easily send and verify OTP's with auto-fetch OTP support via SMS.
+* Supports OTP on web out of the box.
 
 ## Screenshots
 <img src="https://user-images.githubusercontent.com/56810766/115599399-341ffc80-a2f9-11eb-9410-ffd1a254caf6.jpeg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599396-33876600-a2f9-11eb-9516-d0f189b88a53.jpeg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599390-31bda280-a2f9-11eb-8990-d3df76d3aabc.jpg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599398-33876600-a2f9-11eb-9a3a-61e073212c7b.jpeg" height=600/>
@@ -13,7 +14,14 @@
 <b>Step 1</b>: Before you can add Firebase to your app, you need to create a Firebase project to connect to your application.
 Visit [`Understand Firebase Projects`](https://firebase.google.com/docs/projects/learn-more) to learn more about Firebase projects.
 
-<b>Step 2</b>: To use Firebase in your app, you need to register your app with your Firebase project. Registering your app is often called "adding" your app to your project.
+<b>Step 2</b>: To use Firebase in your app, you need to register your app with your Firebase project.
+Registering your app is often called "adding" your app to your project.
+
+Also, register a web app if using on the web.
+Follow on the screen instructions to initilalize the project.
+
+Add the latest version 'firebase-auth' CDN from [here](https://firebase.google.com/docs/web/setup#available-libraries).
+(Tested on version 8.6.1)
 
 <b> Step 3</b>: Add a Firebase configuration file and the SDK's. (google-services)
 
@@ -53,12 +61,12 @@ First and foremost, import the widget.
 import 'package:firebase_phone_auth_handler/firebase_phone_auth_handler.dart';
 ```
 
-Wrap the `MaterialApp` with `FirebasePhoneAuthSupporter` to enable your application to support phone authentication like shown.
+Wrap the `MaterialApp` with `FirebasePhoneAuthProvider` to enable your application to support phone authentication like shown.
 ```dart
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return FirebasePhoneAuthSupporter(
+    return FirebasePhoneAuthProvider(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         home: HomeScreen(),
@@ -72,7 +80,7 @@ You can now add a [`FirebasePhoneAuthHandler`](https://github.com/rithik-dev/fir
 ```dart
 FirebasePhoneAuthHandler(
     phoneNumber: "+919876543210",
-    builder: (controller) {
+    builder: (context, controller) {
         return SizedBox.shrink();
     },
 ),
@@ -100,7 +108,7 @@ which can be used to handle the error.
 ```dart
 FirebasePhoneAuthHandler(
     phoneNumber: "+919876543210",
-    builder: (controller) {
+    builder: (context, controller) {
       return SizedBox.shrink();
     },
     onLoginSuccess: (userCredential, autoVerified) {
@@ -121,7 +129,71 @@ await FirebasePhoneAuthHandler.signOut(context);
 `controller.signOut()` can also be used to logout the current user if the functionality is needed in
 the same screen as the widget itself (where `controller` is the variable passed in the callback from the builder method in the widget).
 
-Sample Usage
+### Web (reCAPTCHA)
+
+By default, the reCAPTCHA widget is a fully managed flow which provides security to your web application.
+The widget will render as an invisible widget when the sign-in flow is triggered. An "invisible"
+widget will appear as a full-page modal on-top of your application like demonstrated below.
+
+![reCAPTCHA1](https://user-images.githubusercontent.com/56810766/119164921-8da35480-ba7a-11eb-8169-eafd67bfdc12.png)
+
+Although, a `RecaptchaVerifier` instance can be passed which can be used to manage the widget.
+
+Use the function `recaptchaVerifierForWebProvider` in `FirebasePhoneAuthHandler` which gives a boolean
+to check whether the current platform is Web or not.
+
+`NOTE`: Do not pass a `RecaptchaVerifier` instance if the platform is not web, else an error occurs.
+
+Example:
+```dart
+recaptchaVerifierForWebProvider: (isWeb) {
+    if (isWeb) return RecaptchaVerifier();
+},
+```
+
+It is however possible to display an inline widget which the user has to explicitly press to verify themselves.
+
+![reCAPTCHA2](https://user-images.githubusercontent.com/56810766/119164930-8f6d1800-ba7a-11eb-9e3d-d58a50c959bd.png)
+
+To add an inline widget, specify a DOM element ID to the container argument of the `RecaptchaVerifier` instance.
+The element must exist and be empty otherwise an error will be thrown.
+If no container argument is provided, the widget will be rendered as "invisible".
+
+```dart
+RecaptchaVerifier(
+  container: 'recaptcha',
+  size: RecaptchaVerifierSize.compact,
+  theme: RecaptchaVerifierTheme.dark,
+  onSuccess: () => print('reCAPTCHA Completed!'),
+  onError: (FirebaseAuthException error) => print(error),
+  onExpired: () => print('reCAPTCHA Expired!'),
+),
+```
+
+If the reCAPTCHA badge does not disappear automatically after authentication is done,
+try adding the following code in `onLoginSuccess` so that it dissapears when the login process is done.
+
+Firstly import `querySelector` from `dart:html`.
+```dart
+import 'dart:html' show querySelector;
+```
+
+Then add this in `onLoginSuccess` callback.
+```dart
+final captcha = querySelector('#__ff-recaptcha-container');
+if (captcha != null) captcha.hidden = true;
+```
+
+If you want to completely disable the reCAPTCHA badge (typically appears on the bottom right),
+add this CSS style in the `web/index.html` outside any other tag.
+
+```html
+<style>
+    .grecaptcha-badge { visibility: hidden; }
+</style>
+```
+
+#### Sample Usage
 ```dart
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_phone_auth_handler/firebase_phone_auth_handler.dart';
@@ -136,7 +208,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return FirebasePhoneAuthSupporter(
+    return FirebasePhoneAuthProvider(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         home: HomeScreen(),
@@ -167,7 +239,7 @@ class HomeScreen extends StatelessWidget {
 
           // handle error further if needed
         },
-        builder: (controller) {
+        builder: (context, controller) {
           return Scaffold(
             appBar: AppBar(
               title: Text("Verification Code"),

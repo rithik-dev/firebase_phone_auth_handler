@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class FirebasePhoneAuthService extends ChangeNotifier {
   /// {@macro timeOutDuration}
@@ -9,6 +10,12 @@ class FirebasePhoneAuthService extends ChangeNotifier {
 
   /// Firebase Auth instance using the default [FirebaseApp].
   FirebaseAuth? _auth = FirebaseAuth.instance;
+
+  /// Web confirmation result for OTP.
+  ConfirmationResult? _webConfirmationResult;
+
+  /// {@macro recaptchaVerifierForWeb}
+  RecaptchaVerifier? _recaptchaVerifierForWeb;
 
   /// The [_forceResendingToken] obtained from [codeSent]
   /// callback to force re-sending another verification SMS before the
@@ -27,23 +34,30 @@ class FirebasePhoneAuthService extends ChangeNotifier {
   /// Whether OTP to the given phoneNumber is sent or not.
   bool codeSent = false;
 
+  /// Whether the current platform is web or not;
+  bool get isWeb => kIsWeb;
+
   /// {@macro onLoginSuccess}
   FutureOr<void> Function(UserCredential, bool)? _onLoginSuccess;
 
   /// {@macro onLoginFailed}
   FutureOr<void> Function(FirebaseAuthException)? _onLoginFailed;
 
-  /// Set callbacks and other data
+  /// Set callbacks and other data. (only for internal use)
+  ///
+  /// Do not call explicitly.
   void setData({
     required String phoneNumber,
     required FutureOr<void> Function(UserCredential, bool)? onLoginSuccess,
     required FutureOr<void> Function(FirebaseAuthException)? onLoginFailed,
+    RecaptchaVerifier? recaptchaVerifierForWeb,
     Duration timeOutDuration = TIME_OUT_DURATION,
   }) {
     _phoneNumber = phoneNumber;
     _onLoginSuccess = onLoginSuccess;
     _onLoginFailed = onLoginFailed;
     _timeoutDuration = timeOutDuration;
+    if (kIsWeb) _recaptchaVerifierForWeb = recaptchaVerifierForWeb;
   }
 
   /// After a [Duration] of [timerCount], the library no more waits for SMS auto-retrieval.
@@ -67,33 +81,31 @@ class FirebasePhoneAuthService extends ChangeNotifier {
   /// Also, [_onLoginFailed] is called with [FirebaseAuthException]
   /// object to handle the error.
   Future<bool> verifyOTP({required String otp}) async {
-    if (_verificationId == null) return false;
+    if ((!kIsWeb && _verificationId == null) ||
+        (kIsWeb && _webConfirmationResult == null)) return false;
     try {
-      final credential = PhoneAuthProvider.credential(
-        verificationId: _verificationId!,
-        smsCode: otp,
-      );
-      return await loginUser(authCredential: credential, autoVerified: false);
+      if (kIsWeb) {
+        final userCredential = await _webConfirmationResult!.confirm(otp);
+        return await _loginUser(
+          userCredential: userCredential,
+          autoVerified: false,
+        );
+      } else {
+        final credential = PhoneAuthProvider.credential(
+          verificationId: _verificationId!,
+          smsCode: otp,
+        );
+        return await _loginUser(
+          authCredential: credential,
+          autoVerified: false,
+        );
+      }
     } on FirebaseAuthException catch (e) {
       if (_onLoginFailed != null) _onLoginFailed!(e);
       return false;
     } catch (e) {
       return false;
     }
-  }
-
-  /// Clear all data
-  void clear() {
-    _auth = null;
-    this.codeSent = false;
-    _onLoginSuccess = null;
-    _onLoginFailed = null;
-    _forceResendingToken = null;
-    _timer?.cancel();
-    _timer = null;
-    _phoneNumber = null;
-    _timeoutDuration = TIME_OUT_DURATION;
-    _verificationId = null;
   }
 
   /// Send OTP to the given [_phoneNumber].
@@ -114,7 +126,7 @@ class FirebasePhoneAuthService extends ChangeNotifier {
 
     final PhoneVerificationCompleted verificationCompleted =
         (AuthCredential authCredential) async {
-      await loginUser(authCredential: authCredential, autoVerified: true);
+      await _loginUser(authCredential: authCredential, autoVerified: true);
     };
 
     final PhoneVerificationFailed verificationFailed = (
@@ -131,12 +143,7 @@ class FirebasePhoneAuthService extends ChangeNotifier {
       _forceResendingToken = forceResendingToken;
       this.codeSent = true;
       notifyListeners();
-
-      _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-        if (timer.tick == _timeoutDuration.inSeconds) _timer?.cancel();
-        notifyListeners();
-      });
-      notifyListeners();
+      _setTimer();
     };
 
     final PhoneCodeAutoRetrievalTimeout codeAutoRetrievalTimeout =
@@ -146,15 +153,24 @@ class FirebasePhoneAuthService extends ChangeNotifier {
 
     try {
       _auth ??= FirebaseAuth.instance;
-      await _auth!.verifyPhoneNumber(
-        phoneNumber: _phoneNumber!,
-        verificationCompleted: verificationCompleted,
-        verificationFailed: verificationFailed,
-        codeSent: codeSent,
-        codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
-        timeout: _timeoutDuration,
-        forceResendingToken: _forceResendingToken,
-      );
+
+      if (kIsWeb) {
+        _webConfirmationResult = await _auth!.signInWithPhoneNumber(
+          _phoneNumber!,
+          _recaptchaVerifierForWeb,
+        );
+        this.codeSent = true;
+        _setTimer();
+      } else
+        await _auth!.verifyPhoneNumber(
+          phoneNumber: _phoneNumber!,
+          verificationCompleted: verificationCompleted,
+          verificationFailed: verificationFailed,
+          codeSent: codeSent,
+          codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+          timeout: _timeoutDuration,
+          forceResendingToken: _forceResendingToken,
+        );
 
       return true;
     } on FirebaseAuthException catch (e) {
@@ -173,13 +189,24 @@ class FirebasePhoneAuthService extends ChangeNotifier {
   /// If for any reason, the user fails to login,
   /// [_onLoginFailed] is called with [FirebaseAuthException]
   /// object to handle the error and false is returned.
-  Future<bool> loginUser({
-    required AuthCredential authCredential,
+  Future<bool> _loginUser({
+    AuthCredential? authCredential,
+    UserCredential? userCredential,
     required bool autoVerified,
   }) async {
+    if (kIsWeb) {
+      if (userCredential != null) {
+        if (_onLoginSuccess != null)
+          _onLoginSuccess!(userCredential, autoVerified);
+        return true;
+      } else
+        return false;
+    }
+
+    // Not on web.
     try {
       _auth ??= FirebaseAuth.instance;
-      final authResult = await _auth!.signInWithCredential(authCredential);
+      final authResult = await _auth!.signInWithCredential(authCredential!);
       if (_onLoginSuccess != null) _onLoginSuccess!(authResult, autoVerified);
       return true;
     } on FirebaseAuthException catch (e) {
@@ -190,11 +217,39 @@ class FirebasePhoneAuthService extends ChangeNotifier {
     }
   }
 
+  /// Set timer after code sent.
+  void _setTimer() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (timer.tick == _timeoutDuration.inSeconds) _timer?.cancel();
+      notifyListeners();
+    });
+    notifyListeners();
+  }
+
   /// {@macro signOut}
   Future<void> signOut() async {
     // this.clear();
     _auth ??= FirebaseAuth.instance;
     await _auth!.signOut();
     notifyListeners();
+  }
+
+  /// Clear all data
+  void clear() {
+    if (kIsWeb) {
+      _recaptchaVerifierForWeb?.clear();
+      _recaptchaVerifierForWeb = null;
+    }
+    this.codeSent = false;
+    _auth = null;
+    _webConfirmationResult = null;
+    _onLoginSuccess = null;
+    _onLoginFailed = null;
+    _forceResendingToken = null;
+    _timer?.cancel();
+    _timer = null;
+    _phoneNumber = null;
+    _timeoutDuration = TIME_OUT_DURATION;
+    _verificationId = null;
   }
 }

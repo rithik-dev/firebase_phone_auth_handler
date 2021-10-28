@@ -141,7 +141,7 @@ class HomeScreen extends StatelessWidget {
                   ),
             floatingActionButton: controller.codeSent
                 ? FloatingActionButton(
-                    backgroundColor: Theme.of(context).accentColor,
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
                     child: Icon(Icons.check),
                     onPressed: () async {
                       if (_enteredOTP == null || _enteredOTP?.length != 6) {

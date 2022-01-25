@@ -1,10 +1,7 @@
-## [1.0.0] - 26/01/2022
+## [0.0.8] - 28/10/2021
 
-* Added linter and updated code accordingly
-* Updated example app
 * Updated dependencies
-* Updated README.md
-* Updated version
+* Updated example app
 
 ## [0.0.7] - 22/05/2021
 

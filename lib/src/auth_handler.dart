@@ -13,7 +13,7 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
     required this.builder,
     this.onLoginFailed,
     this.onLoginSuccess,
-    this.timeOutDuration = FirebasePhoneAuthService.TIME_OUT_DURATION,
+    this.timeOutDuration = FirebasePhoneAuthService.kTimeOutDuration,
     this.recaptchaVerifierForWebProvider,
   }) : super(key: key);
 
@@ -50,7 +50,7 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   ///
   /// Maximum allowed value is 2 minutes.
   ///
-  /// Defaults to [FirebasePhoneAuthService.TIME_OUT_DURATION].
+  /// Defaults to [FirebasePhoneAuthService.kTimeOutDuration].
   /// {@endtemplate}
   final Duration timeOutDuration;
 
@@ -93,14 +93,15 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
           Provider.of<FirebasePhoneAuthService>(context, listen: false);
 
       RecaptchaVerifier? _captcha;
-      if (this.widget.recaptchaVerifierForWebProvider != null)
-        _captcha = this.widget.recaptchaVerifierForWebProvider!(kIsWeb);
+      if (widget.recaptchaVerifierForWebProvider != null) {
+        _captcha = widget.recaptchaVerifierForWebProvider!(kIsWeb);
+      }
 
       _con.setData(
-        phoneNumber: this.widget.phoneNumber,
-        onLoginSuccess: this.widget.onLoginSuccess,
-        onLoginFailed: this.widget.onLoginFailed,
-        timeOutDuration: this.widget.timeOutDuration,
+        phoneNumber: widget.phoneNumber,
+        onLoginSuccess: widget.onLoginSuccess,
+        onLoginFailed: widget.onLoginFailed,
+        timeOutDuration: widget.timeOutDuration,
         recaptchaVerifierForWeb: _captcha,
       );
 
@@ -113,7 +114,7 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
   void dispose() {
     try {
       Provider.of<FirebasePhoneAuthService>(context, listen: false).clear();
-    } catch (e) {}
+    } catch (_) {}
     super.dispose();
   }
 
@@ -121,7 +122,7 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
   Widget build(BuildContext context) {
     return Consumer<FirebasePhoneAuthService>(
       builder: (context, controller, child) =>
-          this.widget.builder(context, controller),
+          widget.builder(context, controller),
     );
   }
 }

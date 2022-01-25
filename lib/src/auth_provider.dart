@@ -17,7 +17,7 @@ class FirebasePhoneAuthProvider extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => FirebasePhoneAuthService(),
-      child: this.child,
+      child: child,
     );
   }
 }

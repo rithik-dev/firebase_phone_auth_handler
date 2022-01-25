@@ -5,86 +5,108 @@ import 'package:flutter/material.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
+  runApp(_MainApp());
 }
 
-class MyApp extends StatelessWidget {
+class _MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FirebasePhoneAuthProvider(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: HomeScreen(),
+        home: VerifyPhoneNumberScreen(phoneNumber: "+919876543210"),
       ),
     );
   }
 }
 
 // ignore: must_be_immutable
-class HomeScreen extends StatelessWidget {
+class VerifyPhoneNumberScreen extends StatelessWidget {
+  final String phoneNumber;
+
   String? _enteredOTP;
-  static const _phoneNumber = "+919876543210";
+
+  VerifyPhoneNumberScreen({
+    Key? key,
+    required this.phoneNumber,
+  }) : super(key: key);
+
+  void _showSnackBar(BuildContext context, String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: FirebasePhoneAuthHandler(
-        phoneNumber: _phoneNumber,
+        phoneNumber: phoneNumber,
         timeOutDuration: const Duration(seconds: 60),
         onLoginSuccess: (userCredential, autoVerified) async {
-          print(autoVerified
-              ? "OTP was fetched automatically"
-              : "OTP was verified manually");
+          _showSnackBar(
+            context,
+            'Phone number verified successfully!',
+          );
 
-          print("Login Success UID: ${userCredential.user?.uid}");
+          debugPrint(
+            autoVerified
+                ? "OTP was fetched automatically"
+                : "OTP was verified manually",
+          );
+
+          debugPrint("Login Success UID: ${userCredential.user?.uid}");
         },
         onLoginFailed: (authException) {
-          print("An error occurred: ${authException.message}");
+          _showSnackBar(
+            context,
+            'Something went wrong (${authException.message})',
+          );
 
+          debugPrint(authException.message);
           // handle error further if needed
         },
         builder: (context, controller) {
           return Scaffold(
             appBar: AppBar(
-              title: Text("Verification Code"),
-              backgroundColor: Colors.black,
-              actions: controller.codeSent
-                  ? [
-                      TextButton(
-                        child: Text(
-                          controller.timerIsActive
-                              ? "${controller.timerCount.inSeconds}s"
-                              : "RESEND",
-                          style: TextStyle(color: Colors.blue, fontSize: 18),
-                        ),
-                        onPressed: controller.timerIsActive
-                            ? null
-                            : () async {
-                                await controller.sendOTP();
-                              },
+              title: const Text("Verify Phone Number"),
+              actions: [
+                if (controller.codeSent)
+                  TextButton(
+                    child: Text(
+                      controller.timerIsActive
+                          ? "${controller.timerCount.inSeconds}s"
+                          : "RESEND",
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        fontSize: 18,
                       ),
-                      SizedBox(width: 5),
-                    ]
-                  : null,
+                    ),
+                    onPressed: controller.timerIsActive
+                        ? null
+                        : () async => await controller.sendOTP(),
+                  ),
+                const SizedBox(width: 5),
+              ],
             ),
             body: controller.codeSent
                 ? ListView(
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     children: [
                       Text(
-                        "We've sent an SMS with a verification code to $_phoneNumber",
-                        style: TextStyle(
+                        "We've sent an SMS with a verification code to $phoneNumber",
+                        style: const TextStyle(
                           fontSize: 25,
                         ),
                       ),
-                      SizedBox(height: 10),
-                      Divider(),
+                      const SizedBox(height: 10),
+                      const Divider(),
                       AnimatedContainer(
-                        duration: Duration(seconds: 1),
+                        duration: const Duration(seconds: 1),
                         height: controller.timerIsActive ? null : 0,
                         child: Column(
-                          children: [
-                            CircularProgressIndicator(),
+                          children: const [
+                            CircularProgressIndicator.adaptive(),
                             SizedBox(height: 50),
                             Text(
                               "Listening for OTP",
@@ -100,8 +122,8 @@ class HomeScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      Text(
-                        "Enter Code Manually",
+                      const Text(
+                        "Enter OTP",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -112,14 +134,17 @@ class HomeScreen extends StatelessWidget {
                         keyboardType: TextInputType.number,
                         onChanged: (String v) async {
                           _enteredOTP = v;
-                          if (this._enteredOTP?.length == 6) {
-                            final res =
-                                await controller.verifyOTP(otp: _enteredOTP!);
+                          if (_enteredOTP?.length == 6) {
+                            final isValidOTP = await controller.verifyOTP(
+                              otp: _enteredOTP!,
+                            );
                             // Incorrect OTP
-                            if (!res)
-                              print(
-                                "Please enter the correct OTP sent to $_phoneNumber",
+                            if (!isValidOTP) {
+                              _showSnackBar(
+                                context,
+                                "Please enter the correct OTP sent to $phoneNumber",
                               );
+                            }
                           }
                         },
                       ),
@@ -128,8 +153,8 @@ class HomeScreen extends StatelessWidget {
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(),
+                    children: const [
+                      CircularProgressIndicator.adaptive(),
                       SizedBox(height: 50),
                       Center(
                         child: Text(
@@ -139,25 +164,6 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-            floatingActionButton: controller.codeSent
-                ? FloatingActionButton(
-                    backgroundColor: Theme.of(context).accentColor,
-                    child: Icon(Icons.check),
-                    onPressed: () async {
-                      if (_enteredOTP == null || _enteredOTP?.length != 6) {
-                        print("Please enter a valid 6 digit OTP");
-                      } else {
-                        final res =
-                            await controller.verifyOTP(otp: _enteredOTP!);
-                        // Incorrect OTP
-                        if (!res)
-                          print(
-                            "Please enter the correct OTP sent to $_phoneNumber",
-                          );
-                      }
-                    },
-                  )
-                : null,
           );
         },
       ),

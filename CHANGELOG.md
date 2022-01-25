@@ -1,3 +1,11 @@
+## [1.0.0] - 26/01/2022
+
+* Added linter and updated code accordingly
+* Updated example app
+* Updated dependencies
+* Updated README.md
+* Updated version
+
 ## [0.0.7] - 22/05/2021
 
 * Renamed FirebasePhoneAuthSupporter to FirebasePhoneAuthProvider.

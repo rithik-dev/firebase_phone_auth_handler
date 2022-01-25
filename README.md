@@ -18,7 +18,7 @@ Visit [`Understand Firebase Projects`](https://firebase.google.com/docs/projects
 Registering your app is often called "adding" your app to your project.
 
 Also, register a web app if using on the web.
-Follow on the screen instructions to initilalize the project.
+Follow on the screen instructions to initialize the project.
 
 Add the latest version 'firebase-auth' CDN from [here](https://firebase.google.com/docs/web/setup#available-libraries).
 (Tested on version 8.6.1)
@@ -41,7 +41,7 @@ and call `Firebase.initializeApp()` in the `main` method as shown:
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
+  runApp(_MainApp());
 }
 ```
 
@@ -63,7 +63,7 @@ import 'package:firebase_phone_auth_handler/firebase_phone_auth_handler.dart';
 
 Wrap the `MaterialApp` with `FirebasePhoneAuthProvider` to enable your application to support phone authentication like shown.
 ```dart
-class MyApp extends StatelessWidget {
+class _MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FirebasePhoneAuthProvider(
@@ -112,11 +112,11 @@ FirebasePhoneAuthHandler(
       return SizedBox.shrink();
     },
     onLoginSuccess: (userCredential, autoVerified) {
-      print("autoVerified: $autoVerified");
-      print("Login success UID: ${userCredential.user?.uid}");
+      debugPrint("autoVerified: $autoVerified");
+      debugPrint("Login success UID: ${userCredential.user?.uid}");
     },
     onLoginFailed: (authException) {
-      print("An error occurred: ${authException.message}");
+      debugPrint("An error occurred: ${authException.message}");
     },
 ),
 ```
@@ -171,7 +171,7 @@ RecaptchaVerifier(
 ```
 
 If the reCAPTCHA badge does not disappear automatically after authentication is done,
-try adding the following code in `onLoginSuccess` so that it dissapears when the login process is done.
+try adding the following code in `onLoginSuccess` so that it disappears when the login process is done.
 
 Firstly import `querySelector` from `dart:html`.
 ```dart
@@ -193,6 +193,28 @@ add this CSS style in the `web/index.html` outside any other tag.
 </style>
 ```
 
+#### How I prefer using it usually
+I usually have a phone number input field, which handles phone number input. Then pass the phone number
+to the [`VerifyPhoneNumberScreen`](https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/example/lib/main.dart#L24)
+widget from the example app.
+
+```dart
+// probably some ui or dialog to get the phone number
+final phoneNumber = _getPhoneNumber();
+
+// then call
+void _verifyPhoneNumber() async {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => VerifyPhoneNumberScreen(phoneNumber: phoneNumber),
+    ),
+  );
+}
+
+/// route to home screen or somewhere in the onLoginSuccess callback for [VerifyPhoneNumberScreen] 
+```
+
 #### Sample Usage
 ```dart
 import 'package:firebase_core/firebase_core.dart';
@@ -202,85 +224,109 @@ import 'package:flutter/material.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
+  runApp(_MainApp());
 }
 
-class MyApp extends StatelessWidget {
+// ignore: must_be_immutable
+class _MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FirebasePhoneAuthProvider(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: HomeScreen(),
+        home: VerifyPhoneNumberScreen(phoneNumber: "+919876543210"),
       ),
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
+// ignore: must_be_immutable
+class VerifyPhoneNumberScreen extends StatelessWidget {
+  final String phoneNumber;
+
   String? _enteredOTP;
-  static const _phoneNumber = "+919876543210";
+
+  VerifyPhoneNumberScreen({
+    Key? key,
+    required this.phoneNumber,
+  }) : super(key: key);
+
+  void _showSnackBar(BuildContext context, String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: FirebasePhoneAuthHandler(
-        phoneNumber: _phoneNumber,
+        phoneNumber: phoneNumber,
         timeOutDuration: const Duration(seconds: 60),
         onLoginSuccess: (userCredential, autoVerified) async {
-          print(autoVerified
-              ? "OTP was fetched automatically"
-              : "OTP was verified manually");
+          _showSnackBar(
+            context,
+            'Phone number verified successfully!',
+          );
 
-          print("Login Success UID: ${userCredential.user?.uid}");
+          debugPrint(
+            autoVerified
+                ? "OTP was fetched automatically"
+                : "OTP was verified manually",
+          );
+
+          debugPrint("Login Success UID: ${userCredential.user?.uid}");
         },
         onLoginFailed: (authException) {
-          print("An error occurred: ${authException.message}");
+          _showSnackBar(
+            context,
+            'Something went wrong (${authException.message})',
+          );
 
+          debugPrint(authException.message);
           // handle error further if needed
         },
         builder: (context, controller) {
           return Scaffold(
             appBar: AppBar(
-              title: Text("Verification Code"),
-              backgroundColor: Colors.black,
-              actions: controller.codeSent
-                  ? [
-                      TextButton(
-                        child: Text(
-                          controller.timerIsActive
-                              ? "${controller.timerCount.inSeconds}s"
-                              : "RESEND",
-                          style: TextStyle(color: Colors.blue, fontSize: 18),
-                        ),
-                        onPressed: controller.timerIsActive
-                            ? null
-                            : () async {
-                                await controller.sendOTP();
-                              },
+              title: const Text("Verify Phone Number"),
+              actions: [
+                if (controller.codeSent)
+                  TextButton(
+                    child: Text(
+                      controller.timerIsActive
+                          ? "${controller.timerCount.inSeconds}s"
+                          : "RESEND",
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        fontSize: 18,
                       ),
-                      SizedBox(width: 5),
-                    ]
-                  : null,
+                    ),
+                    onPressed: controller.timerIsActive
+                        ? null
+                        : () async => await controller.sendOTP(),
+                  ),
+                const SizedBox(width: 5),
+              ],
             ),
             body: controller.codeSent
                 ? ListView(
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     children: [
                       Text(
-                        "We've sent an SMS with a verification code to $_phoneNumber",
-                        style: TextStyle(
+                        "We've sent an SMS with a verification code to $phoneNumber",
+                        style: const TextStyle(
                           fontSize: 25,
                         ),
                       ),
-                      SizedBox(height: 10),
-                      Divider(),
+                      const SizedBox(height: 10),
+                      const Divider(),
                       AnimatedContainer(
-                        duration: Duration(seconds: 1),
+                        duration: const Duration(seconds: 1),
                         height: controller.timerIsActive ? null : 0,
                         child: Column(
-                          children: [
-                            CircularProgressIndicator(),
+                          children: const [
+                            CircularProgressIndicator.adaptive(),
                             SizedBox(height: 50),
                             Text(
                               "Listening for OTP",
@@ -296,8 +342,8 @@ class HomeScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      Text(
-                        "Enter Code Manually",
+                      const Text(
+                        "Enter OTP",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -308,14 +354,17 @@ class HomeScreen extends StatelessWidget {
                         keyboardType: TextInputType.number,
                         onChanged: (String v) async {
                           _enteredOTP = v;
-                          if (this._enteredOTP?.length == 6) {
-                            final res =
-                                await controller.verifyOTP(otp: _enteredOTP!);
+                          if (_enteredOTP?.length == 6) {
+                            final isValidOTP = await controller.verifyOTP(
+                              otp: _enteredOTP!,
+                            );
                             // Incorrect OTP
-                            if (!res)
-                              print(
-                                "Please enter the correct OTP sent to $_phoneNumber",
+                            if (!isValidOTP) {
+                              _showSnackBar(
+                                context,
+                                "Please enter the correct OTP sent to $phoneNumber",
                               );
+                            }
                           }
                         },
                       ),
@@ -324,8 +373,8 @@ class HomeScreen extends StatelessWidget {
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(),
+                    children: const [
+                      CircularProgressIndicator.adaptive(),
                       SizedBox(height: 50),
                       Center(
                         child: Text(
@@ -335,25 +384,6 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-            floatingActionButton: controller.codeSent
-                ? FloatingActionButton(
-                    backgroundColor: Theme.of(context).accentColor,
-                    child: Icon(Icons.check),
-                    onPressed: () async {
-                      if (_enteredOTP == null || _enteredOTP?.length != 6) {
-                        print("Please enter a valid 6 digit OTP");
-                      } else {
-                        final res =
-                            await controller.verifyOTP(otp: _enteredOTP!);
-                        // Incorrect OTP
-                        if (!res)
-                          print(
-                            "Please enter the correct OTP sent to $_phoneNumber",
-                          );
-                      }
-                    },
-                  )
-                : null,
           );
         },
       ),
@@ -362,6 +392,8 @@ class HomeScreen extends StatelessWidget {
 }
 
 ```
+
+See the [`example`](https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/example) directory for a complete sample app.
 
 ### Created & Maintained By `Rithik Bhandari`
 

@@ -4,7 +4,6 @@
 * Updated example app
 * Updated dependencies
 * Updated README.md
-* Updated version
 
 ## [0.0.8] - 28/10/2021
 

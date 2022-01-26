@@ -1,4 +1,4 @@
-# FirebasePhoneAuthHandler For Flutter
+# [FirebasePhoneAuthHandler](https://pub.dev/packages/firebase_phone_auth_handler) For Flutter
 [![pub package](https://img.shields.io/pub/v/firebase_phone_auth_handler.svg)](https://pub.dev/packages/firebase_phone_auth_handler)
 [![likes](https://badges.bar/firebase_phone_auth_handler/likes)](https://pub.dev/packages/firebase_phone_auth_handler/score)
 [![popularity](https://badges.bar/firebase_phone_auth_handler/popularity)](https://pub.dev/packages/firebase_phone_auth_handler/score)

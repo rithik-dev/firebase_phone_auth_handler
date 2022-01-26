@@ -1,3 +1,8 @@
+## [1.0.1] - 26/01/2022
+
+* Updated license
+* Updated README.md
+
 ## [1.0.0] - 26/01/2022
 
 * Added linter and updated code accordingly

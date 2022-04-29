@@ -217,42 +217,66 @@ void _verifyPhoneNumber() async {
 
 #### Sample Usage
 ```dart
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_phone_auth_handler/firebase_phone_auth_handler.dart';
 import 'package:flutter/material.dart';
+import 'package:phone_auth_handler_demo/screens/home_screen.dart';
+import 'package:phone_auth_handler_demo/utils/helpers.dart';
+import 'package:phone_auth_handler_demo/widgets/custom_loader.dart';
+import 'package:phone_auth_handler_demo/widgets/pin_input_field.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(_MainApp());
-}
+class VerifyPhoneNumberScreen extends StatefulWidget {
+  static const id = 'VerifyPhoneNumberScreen';
 
-class _MainApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return FirebasePhoneAuthProvider(
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: VerifyPhoneNumberScreen(phoneNumber: "+919876543210"),
-      ),
-    );
-  }
-}
-
-// ignore: must_be_immutable
-class VerifyPhoneNumberScreen extends StatelessWidget {
   final String phoneNumber;
 
-  String? _enteredOTP;
-
-  VerifyPhoneNumberScreen({
+  const VerifyPhoneNumberScreen({
     Key? key,
     required this.phoneNumber,
   }) : super(key: key);
 
-  void _showSnackBar(BuildContext context, String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text)),
+  @override
+  State<VerifyPhoneNumberScreen> createState() =>
+      _VerifyPhoneNumberScreenState();
+}
+
+class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
+    with WidgetsBindingObserver {
+  bool isKeyboardVisible = false;
+
+  late final ScrollController scrollController;
+
+  @override
+  void initState() {
+    scrollController = ScrollController();
+    WidgetsBinding.instance?.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance?.removeObserver(this);
+    scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    final bottomViewInsets = WidgetsBinding.instance!.window.viewInsets.bottom;
+    isKeyboardVisible = bottomViewInsets > 0;
+  }
+
+  // scroll to bottom of screen, when pin input field is in focus.
+  Future<void> _scrollToBottomOnKeyboardOpen() async {
+    while (!isKeyboardVisible) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
+    await Future.delayed(const Duration(milliseconds: 250));
+
+    await scrollController.animateTo(
+      scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeIn,
     );
   }
 
@@ -260,29 +284,31 @@ class VerifyPhoneNumberScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: FirebasePhoneAuthHandler(
-        phoneNumber: phoneNumber,
-        timeOutDuration: const Duration(seconds: 60),
+        phoneNumber: widget.phoneNumber,
         onLoginSuccess: (userCredential, autoVerified) async {
-          _showSnackBar(
+          log(
+            VerifyPhoneNumberScreen.id,
+            msg: autoVerified
+                ? 'OTP was fetched automatically!'
+                : 'OTP was verified manually!',
+          );
+
+          showSnackBar('Phone number verified successfully!');
+
+          log(
+            VerifyPhoneNumberScreen.id,
+            msg: 'Login Success UID: ${userCredential.user?.uid}',
+          );
+
+          Navigator.pushNamedAndRemoveUntil(
             context,
-            'Phone number verified successfully!',
+            HomeScreen.id,
+            (route) => false,
           );
-
-          debugPrint(
-            autoVerified
-                ? "OTP was fetched automatically"
-                : "OTP was verified manually",
-          );
-
-          debugPrint("Login Success UID: ${userCredential.user?.uid}");
         },
         onLoginFailed: (authException) {
-          _showSnackBar(
-            context,
-            'Something went wrong (${authException.message})',
-          );
-
-          debugPrint(authException.message);
+          showSnackBar('Something went wrong!');
+          log(VerifyPhoneNumberScreen.id, error: authException.message);
           // handle error further if needed
         },
         builder: (context, controller) {
@@ -290,22 +316,22 @@ class VerifyPhoneNumberScreen extends StatelessWidget {
             appBar: AppBar(
               leadingWidth: 0,
               leading: const SizedBox.shrink(),
-              title: const Text("Verify Phone Number"),
+              title: const Text('Verify Phone Number'),
               actions: [
                 if (controller.codeSent)
                   TextButton(
                     child: Text(
                       controller.timerIsActive
-                          ? "${controller.timerCount.inSeconds}s"
-                          : "RESEND",
-                      style: const TextStyle(
-                        color: Colors.blue,
-                        fontSize: 18,
-                      ),
+                          ? '${controller.timerCount.inSeconds}s'
+                          : 'Resend',
+                      style: const TextStyle(color: Colors.blue, fontSize: 18),
                     ),
                     onPressed: controller.timerIsActive
                         ? null
-                        : () async => await controller.sendOTP(),
+                        : () async {
+                            log(VerifyPhoneNumberScreen.id, msg: 'Resend OTP');
+                            await controller.sendOTP();
+                          },
                   ),
                 const SizedBox(width: 5),
               ],
@@ -313,59 +339,54 @@ class VerifyPhoneNumberScreen extends StatelessWidget {
             body: controller.codeSent
                 ? ListView(
                     padding: const EdgeInsets.all(20),
+                    controller: scrollController,
                     children: [
                       Text(
-                        "We've sent an SMS with a verification code to $phoneNumber",
-                        style: const TextStyle(
-                          fontSize: 25,
-                        ),
+                        "We've sent an SMS with a verification code to ${widget.phoneNumber}",
+                        style: const TextStyle(fontSize: 25),
                       ),
                       const SizedBox(height: 10),
                       const Divider(),
-                      AnimatedContainer(
-                        duration: const Duration(seconds: 1),
-                        height: controller.timerIsActive ? null : 0,
-                        child: Column(
+                      if (controller.timerIsActive)
+                        Column(
                           children: const [
-                            CircularProgressIndicator.adaptive(),
+                            CustomLoader(),
                             SizedBox(height: 50),
                             Text(
-                              "Listening for OTP",
+                              'Listening for OTP',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 25,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
+                            SizedBox(height: 15),
                             Divider(),
-                            Text("OR", textAlign: TextAlign.center),
+                            Text('OR', textAlign: TextAlign.center),
                             Divider(),
                           ],
                         ),
-                      ),
+                      const SizedBox(height: 15),
                       const Text(
-                        "Enter OTP",
+                        'Enter OTP',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      TextField(
-                        maxLength: 6,
-                        keyboardType: TextInputType.number,
-                        onChanged: (String v) async {
-                          _enteredOTP = v;
-                          if (_enteredOTP?.length == 6) {
-                            final isValidOTP = await controller.verifyOTP(
-                              otp: _enteredOTP!,
-                            );
-                            // Incorrect OTP
-                            if (!isValidOTP) {
-                              _showSnackBar(
-                                context,
-                                "Please enter the correct OTP sent to $phoneNumber",
-                              );
-                            }
+                      const SizedBox(height: 15),
+                      PinInputField(
+                        length: 6,
+                        onFocusChange: (hasFocus) async {
+                          if (hasFocus) await _scrollToBottomOnKeyboardOpen();
+                        },
+                        onSubmit: (enteredOTP) async {
+                          final isValidOTP = await controller.verifyOTP(
+                            otp: enteredOTP,
+                          );
+                          // Incorrect OTP
+                          if (!isValidOTP) {
+                            showSnackBar('The entered OTP is invalid!');
                           }
                         },
                       ),
@@ -375,11 +396,11 @@ class VerifyPhoneNumberScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: const [
-                      CircularProgressIndicator.adaptive(),
+                      CustomLoader(),
                       SizedBox(height: 50),
                       Center(
                         child: Text(
-                          "Sending OTP",
+                          'Sending OTP',
                           style: TextStyle(fontSize: 25),
                         ),
                       ),
@@ -391,7 +412,6 @@ class VerifyPhoneNumberScreen extends StatelessWidget {
     );
   }
 }
-
 ```
 
 See the [`example`](https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/example) directory for a complete sample app.

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_phone_auth_handler/src/auth_service.dart';
+import 'package:firebase_phone_auth_handler/src/auth_controller.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -13,7 +13,7 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
     required this.builder,
     this.onLoginFailed,
     this.onLoginSuccess,
-    this.timeOutDuration = FirebasePhoneAuthService.kTimeOutDuration,
+    this.timeOutDuration = FirebasePhoneAuthController.kTimeOutDuration,
     this.recaptchaVerifierForWebProvider,
   }) : super(key: key);
 
@@ -50,7 +50,7 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   ///
   /// Maximum allowed value is 2 minutes.
   ///
-  /// Defaults to [FirebasePhoneAuthService.kTimeOutDuration].
+  /// Defaults to [FirebasePhoneAuthController.kTimeOutDuration].
   /// {@endtemplate}
   final Duration timeOutDuration;
 
@@ -72,13 +72,13 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   /// The builder provides a controller which can be used to render the UI based
   /// on the current state.
   /// {@endtemplate}
-  final Widget Function(BuildContext, FirebasePhoneAuthService) builder;
+  final Widget Function(BuildContext, FirebasePhoneAuthController) builder;
 
   /// {@template signOut}
   /// Signs out the current user.
   /// {@endtemplate}
   static Future<void> signOut(BuildContext context) =>
-      Provider.of<FirebasePhoneAuthService>(context, listen: false).signOut();
+      FirebasePhoneAuthController.of(context, listen: false).signOut();
 
   @override
   _FirebasePhoneAuthHandlerState createState() =>
@@ -89,8 +89,7 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
   @override
   void initState() {
     (() async {
-      final _con =
-          Provider.of<FirebasePhoneAuthService>(context, listen: false);
+      final _con = FirebasePhoneAuthController.of(context, listen: false);
 
       RecaptchaVerifier? _captcha;
       if (widget.recaptchaVerifierForWebProvider != null) {
@@ -113,14 +112,14 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
   @override
   void dispose() {
     try {
-      Provider.of<FirebasePhoneAuthService>(context, listen: false).clear();
+      FirebasePhoneAuthController.of(context, listen: false).clear();
     } catch (_) {}
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<FirebasePhoneAuthService>(
+    return Consumer<FirebasePhoneAuthController>(
       builder: (context, controller, _) => widget.builder(context, controller),
     );
   }

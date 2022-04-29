@@ -288,6 +288,8 @@ class VerifyPhoneNumberScreen extends StatelessWidget {
         builder: (context, controller) {
           return Scaffold(
             appBar: AppBar(
+              leadingWidth: 0,
+              leading: const SizedBox.shrink(),
               title: const Text("Verify Phone Number"),
               actions: [
                 if (controller.codeSent)

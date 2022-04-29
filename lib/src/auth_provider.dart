@@ -1,4 +1,4 @@
-import 'package:firebase_phone_auth_handler/src/auth_service.dart';
+import 'package:firebase_phone_auth_handler/src/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,8 +15,8 @@ class FirebasePhoneAuthProvider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => FirebasePhoneAuthService(),
+    return ChangeNotifierProvider<FirebasePhoneAuthController>(
+      create: (_) => FirebasePhoneAuthController(),
       child: child,
     );
   }

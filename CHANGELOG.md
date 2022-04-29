@@ -1,3 +1,11 @@
+## [1.0.2] - 30/04/2022
+
+* Renamed auth_service to auth_controller
+* Updated dependencies
+* Minor bug fixes
+* Updated example app
+* Updated README.md
+
 ## [1.0.1] - 26/01/2022
 
 * Updated license

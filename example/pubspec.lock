@@ -102,10 +102,10 @@ packages:
   firebase_phone_auth_handler:
     dependency: "direct main"
     description:
-      path: "D:/_CODING/Projects/AndroidStudioProjects/_packages/firebase_phone_auth_handler"
-      relative: false
+      path: ".."
+      relative: true
     source: path
-    version: "1.0.1"
+    version: "1.0.2"
   flutter:
     dependency: "direct main"
     description: flutter

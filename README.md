@@ -8,7 +8,7 @@
 * Supports OTP on web out of the box.
 
 ## Screenshots
-<img src="https://user-images.githubusercontent.com/56810766/115599399-341ffc80-a2f9-11eb-9410-ffd1a254caf6.jpeg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599396-33876600-a2f9-11eb-9516-d0f189b88a53.jpeg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599390-31bda280-a2f9-11eb-8990-d3df76d3aabc.jpg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599398-33876600-a2f9-11eb-9a3a-61e073212c7b.jpeg" height=600/>
+<img src="https://user-images.githubusercontent.com/56810766/166433323-39875cc4-440a-4556-9550-1b5ab4e8f310.gif" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599396-33876600-a2f9-11eb-9516-d0f189b88a53.jpeg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599390-31bda280-a2f9-11eb-8990-d3df76d3aabc.jpg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/166431851-228693fe-7430-4c66-baa2-65acc2db9db4.jpg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/166431847-06aceb70-db87-4138-8146-e9c935a51cf2.jpg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/166431849-28a4563d-2c59-4da7-b21a-355dc0b72448.jpg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/166431854-f0f8ec50-a105-47ab-97a1-d12dbaf13ce8.jpg" height=600/>
 
 ## Getting Started
 <b>Step 1</b>: Before you can add Firebase to your app, you need to create a Firebase project to connect to your application.

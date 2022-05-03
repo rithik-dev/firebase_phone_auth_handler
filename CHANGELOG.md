@@ -1,3 +1,8 @@
+## [1.0.3] - 03/05/2022
+
+* Updated example app
+* Updated README.md
+
 ## [1.0.2] - 30/04/2022
 
 * Renamed auth_service to auth_controller

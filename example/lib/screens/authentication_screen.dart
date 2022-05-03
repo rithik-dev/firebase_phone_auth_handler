@@ -18,20 +18,7 @@ class AuthenticationScreen extends StatefulWidget {
 class _AuthenticationScreenState extends State<AuthenticationScreen> {
   String? phoneNumber;
 
-  late final TextEditingController _controller;
   final _formKey = GlobalKey<FormState>();
-
-  @override
-  void initState() {
-    _controller = TextEditingController();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +41,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                 child: Form(
                   key: _formKey,
                   child: IntlPhoneField(
-                    controller: _controller,
                     autofocus: true,
                     invalidNumberMessage: 'Invalid Phone Number!',
                     textAlignVertical: TextAlignVertical.center,
@@ -79,7 +65,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                       !_formKey.currentState!.validate()) {
                     showSnackBar('Please enter a valid phone number!');
                   } else {
-                    _controller.clear();
                     Navigator.pushNamed(
                       context,
                       VerifyPhoneNumberScreen.id,

@@ -72,7 +72,7 @@ class _PinInputFieldState extends State<PinInputField> {
     );
   }
 
-  static const _focusScaleFactor = 1.2;
+  static const _focusScaleFactor = 1.15;
 
   @override
   Widget build(BuildContext context) {

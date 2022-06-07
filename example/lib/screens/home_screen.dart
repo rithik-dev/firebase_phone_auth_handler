@@ -40,6 +40,8 @@ class HomeScreen extends StatelessWidget {
                 onTap: () async {
                   await FirebasePhoneAuthHandler.signOut(context);
                   showSnackBar('Logged out successfully!');
+
+                  // ignore: use_build_context_synchronously
                   Navigator.pushNamedAndRemoveUntil(
                     context,
                     AuthenticationScreen.id,

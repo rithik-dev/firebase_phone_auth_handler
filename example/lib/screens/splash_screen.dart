@@ -12,6 +12,7 @@ class SplashScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _SplashScreenState createState() => _SplashScreenState();
 }
 
@@ -22,6 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
       await Future.delayed(Duration.zero);
       final isLoggedIn = Globals.firebaseUser != null;
 
+      if (!mounted) return;
       Navigator.pushReplacementNamed(
         context,
         isLoggedIn ? HomeScreen.id : AuthenticationScreen.id,

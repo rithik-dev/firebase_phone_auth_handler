@@ -12,6 +12,7 @@ class AuthenticationScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _AuthenticationScreenState createState() => _AuthenticationScreenState();
 }
 
@@ -55,10 +56,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
               ),
               const SizedBox(height: 15),
               EasyContainer(
-                child: const Text(
-                  'Verify',
-                  style: TextStyle(fontSize: 18),
-                ),
                 width: double.infinity,
                 onTap: () async {
                   if (isNullOrBlank(phoneNumber) ||
@@ -72,6 +69,10 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                     );
                   }
                 },
+                child: const Text(
+                  'Verify',
+                  style: TextStyle(fontSize: 18),
+                ),
               ),
             ],
           ),

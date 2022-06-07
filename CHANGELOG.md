@@ -1,3 +1,9 @@
+## [1.0.4] - 07/06/2022
+
+* Updated example app
+* Updated dependencies
+* Fixed linter warnings
+
 ## [1.0.3] - 03/05/2022
 
 * Updated example app

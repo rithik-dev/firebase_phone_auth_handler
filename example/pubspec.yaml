@@ -12,9 +12,9 @@ dependencies:
   flutter:
     sdk: flutter
 
-  pinput: ^2.2.7
-  firebase_core: ^1.15.0
-  easy_container: ^1.0.3
+  pinput: ^2.2.10
+  firebase_core: ^1.17.1
+  easy_container: ^1.0.4
   intl_phone_field: ^3.1.0
   firebase_phone_auth_handler:
     path: "../"
@@ -23,7 +23,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^1.0.4
+  flutter_lints: ^2.0.1
 
 
 flutter:

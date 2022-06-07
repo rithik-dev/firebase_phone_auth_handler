@@ -29,20 +29,20 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
   @override
   void initState() {
     scrollController = ScrollController();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     scrollController.dispose();
     super.dispose();
   }
 
   @override
   void didChangeMetrics() {
-    final bottomViewInsets = WidgetsBinding.instance!.window.viewInsets.bottom;
+    final bottomViewInsets = WidgetsBinding.instance.window.viewInsets.bottom;
     isKeyboardVisible = bottomViewInsets > 0;
   }
 
@@ -101,18 +101,18 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
               actions: [
                 if (controller.codeSent)
                   TextButton(
-                    child: Text(
-                      controller.timerIsActive
-                          ? '${controller.timerCount.inSeconds}s'
-                          : 'Resend',
-                      style: const TextStyle(color: Colors.blue, fontSize: 18),
-                    ),
                     onPressed: controller.timerIsActive
                         ? null
                         : () async {
                             log(VerifyPhoneNumberScreen.id, msg: 'Resend OTP');
                             await controller.sendOTP();
                           },
+                    child: Text(
+                      controller.timerIsActive
+                          ? '${controller.timerCount.inSeconds}s'
+                          : 'Resend',
+                      style: const TextStyle(color: Colors.blue, fontSize: 18),
+                    ),
                   ),
                 const SizedBox(width: 5),
               ],

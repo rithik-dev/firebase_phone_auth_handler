@@ -95,6 +95,7 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
       FirebasePhoneAuthController.of(context, listen: false).signOut();
 
   @override
+  // ignore: library_private_types_in_public_api
   _FirebasePhoneAuthHandlerState createState() =>
       _FirebasePhoneAuthHandlerState();
 }
@@ -103,22 +104,22 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
   @override
   void initState() {
     (() async {
-      final _con = FirebasePhoneAuthController.of(context, listen: false);
+      final con = FirebasePhoneAuthController.of(context, listen: false);
 
-      RecaptchaVerifier? _captcha;
+      RecaptchaVerifier? captcha;
       if (widget.recaptchaVerifierForWebProvider != null) {
-        _captcha = widget.recaptchaVerifierForWebProvider!(kIsWeb);
+        captcha = widget.recaptchaVerifierForWebProvider!(kIsWeb);
       }
 
-      _con.setData(
+      con.setData(
         phoneNumber: widget.phoneNumber,
         onLoginSuccess: widget.onLoginSuccess,
         onLoginFailed: widget.onLoginFailed,
         timeOutDuration: widget.timeOutDuration,
-        recaptchaVerifierForWeb: _captcha,
+        recaptchaVerifierForWeb: captcha,
       );
 
-      await _con.sendOTP();
+      await con.sendOTP();
     })();
     super.initState();
   }

@@ -53,13 +53,13 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// Set callbacks and other data. (only for internal use)
   ///
   /// Do not call explicitly.
-  void setData({
-    required String phoneNumber,
-    required FutureOr<void> Function(UserCredential, bool)? onLoginSuccess,
-    required FutureOr<void> Function(FirebaseAuthException)? onLoginFailed,
-    RecaptchaVerifier? recaptchaVerifierForWeb,
-    Duration timeOutDuration = kTimeOutDuration,
-  }) {
+  void setData(
+      {required String phoneNumber,
+      required FutureOr<void> Function(UserCredential, bool)? onLoginSuccess,
+      required FutureOr<void> Function(FirebaseAuthException)? onLoginFailed,
+      RecaptchaVerifier? recaptchaVerifierForWeb,
+      Duration timeOutDuration = kTimeOutDuration,
+      bool? isUserVerifyOnly}) {
     _phoneNumber = phoneNumber;
     _onLoginSuccess = onLoginSuccess;
     _onLoginFailed = onLoginFailed;
@@ -87,7 +87,8 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   ///
   /// Also, [_onLoginFailed] is called with [FirebaseAuthException]
   /// object to handle the error.
-  Future<bool> verifyOTP({required String otp}) async {
+  Future<bool> verifyOTP(
+      {required String otp, bool isUserVerifyOnly = false}) async {
     if ((!kIsWeb && _verificationId == null) ||
         (kIsWeb && _webConfirmationResult == null)) return false;
     try {
@@ -102,6 +103,12 @@ class FirebasePhoneAuthController extends ChangeNotifier {
           verificationId: _verificationId!,
           smsCode: otp,
         );
+        if (isUserVerifyOnly) {
+          return await _verifyUserPhoneOnly(
+            authCredential: credential,
+            autoVerified: false,
+          );
+        }
         return await _loginUser(
           authCredential: credential,
           autoVerified: false,
@@ -205,6 +212,45 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     // Not on web.
     try {
       final authResult = await _auth.signInWithCredential(authCredential!);
+      if (_onLoginSuccess != null) _onLoginSuccess!(authResult, autoVerified);
+      return true;
+    } on FirebaseAuthException catch (e) {
+      if (_onLoginFailed != null) _onLoginFailed!(e);
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Called when the otp is verified either automatically (OTP auto fetched)
+  /// or [verifyOTP] was called with the correct OTP.
+  ///
+  /// If true is returned that means the user was logged in successfully.
+  ///
+  /// If for any reason, the user fails to login,
+  /// [_onLoginFailed] is called with [FirebaseAuthException]
+  /// object to handle the error and false is returned.
+  Future<bool> _verifyUserPhoneOnly({
+    AuthCredential? authCredential,
+    UserCredential? userCredential,
+    required bool autoVerified,
+  }) async {
+    if (kIsWeb) {
+      if (userCredential != null) {
+        if (_onLoginSuccess != null) {
+          _onLoginSuccess!(userCredential, autoVerified);
+        }
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    // Not on web.
+    try {
+      // final authResult = await _auth.signInWithCredential(authCredential!);
+      final authResult =
+          await _auth.currentUser!.linkWithCredential(authCredential!);
       if (_onLoginSuccess != null) _onLoginSuccess!(authResult, autoVerified);
       return true;
     } on FirebaseAuthException catch (e) {

@@ -129,6 +129,16 @@ await FirebasePhoneAuthHandler.signOut(context);
 `controller.signOut()` can also be used to logout the current user if the functionality is needed in
 the same screen as the widget itself (where `controller` is the variable passed in the callback from the builder method in the widget).
 
+
+```dart
+ final isValidOTP = await controller.verifyOTP(
+                            otp: enteredOTP,
+                            isUserVerifyOnly:true
+                          );
+```
+`isUserVerifyOnly: true` for OTP verification only this does not create new user  verify and link with existing user 
+
+
 ### Web (reCAPTCHA)
 
 By default, the reCAPTCHA widget is a fully managed flow which provides security to your web application.

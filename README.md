@@ -420,3 +420,5 @@ See the [`example`](https://github.com/rithik-dev/firebase_phone_auth_handler/bl
 
 * GitHub: [@rithik-dev](https://github.com/rithik-dev)
 * LinkedIn: [@rithik-bhandari](https://www.linkedin.com/in/rithik-bhandari/)
+
+`Thanks`

@@ -19,6 +19,7 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
     this.onCodeSent,
     this.signOutOnSuccessfulVerification = false,
     this.autoRetrievalTimeOutDuration = FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
+    this.otpExpirationDuration = FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
     this.recaptchaVerifierForWebProvider,
   }) : super(key: key);
 
@@ -60,7 +61,7 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   /// essential user information.
   ///
   /// The boolean provided is whether the OTP was auto verified or
-  /// verified manually by calling [verifyOTP].
+  /// verified manually by calling [verifyOtp].
   ///
   /// True if auto verified and false is verified manually.
   ///
@@ -82,10 +83,28 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   ///
   /// Maximum allowed value is 2 minutes.
   ///
+  /// NOTE: The user can still use the OTP to sign in after
+  /// [autoRetrievalTimeOutDuration] duration, but the device
+  /// will not try to auto-fetch the OTP after this set duration.
+  ///
   /// Defaults to [FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration].
   ///
   /// {@endtemplate}
   final Duration autoRetrievalTimeOutDuration;
+
+  /// {@template otpExpirationDuration}
+  ///
+  /// The OTP expiration duration, can be used to display a timer, and show
+  /// a resend button, to resend the OTP.
+  ///
+  /// Firebase does not document if the OTP ever expires, or anything
+  /// about it's validity. Hence, this can be used to show a timer, or force
+  /// user to request a new otp after a set duration.
+  ///
+  /// Defaults to [FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration].
+  ///
+  /// {@endtemplate}
+  final Duration otpExpirationDuration;
 
   /// {@template recaptchaVerifierForWeb}
   ///
@@ -141,6 +160,7 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
         onLoginSuccess: widget.onLoginSuccess,
         onLoginFailed: widget.onLoginFailed,
         autoRetrievalTimeOutDuration: widget.autoRetrievalTimeOutDuration,
+        otpExpirationDuration: widget.otpExpirationDuration,
         onCodeSent: widget.onCodeSent,
         signOutOnSuccessfulVerification: widget.signOutOnSuccessfulVerification,
         recaptchaVerifierForWeb: captcha,

@@ -67,7 +67,8 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
       child: FirebasePhoneAuthHandler(
         phoneNumber: widget.phoneNumber,
         signOutOnSuccessfulVerification: false,
-        autoRetrievalTimeOutDuration: const Duration(seconds: 60),
+        autoRetrievalTimeOutDuration: const Duration(seconds: 30),
+        otpExpirationDuration: const Duration(seconds: 60),
         onCodeSent: () {
           log(VerifyPhoneNumberScreen.id, msg: 'OTP sent!');
         },
@@ -106,16 +107,16 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
               actions: [
                 if (controller.codeSent)
                   TextButton(
-                    onPressed: controller.timerIsActive
-                        ? null
-                        : () async {
+                    onPressed: controller.isOtpExpired
+                        ? () async {
                             log(VerifyPhoneNumberScreen.id, msg: 'Resend OTP');
                             await controller.sendOTP();
-                          },
+                          }
+                        : null,
                     child: Text(
-                      controller.timerIsActive
-                          ? '${controller.timerCount.inSeconds}s'
-                          : 'Resend',
+                      controller.isOtpExpired
+                          ? 'Resend'
+                          : '${controller.otpExpirationTimeLeft.inSeconds}s',
                       style: const TextStyle(color: Colors.blue, fontSize: 18),
                     ),
                   ),
@@ -147,7 +148,7 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
                       ),
                       const SizedBox(height: 10),
                       const Divider(),
-                      if (controller.timerIsActive)
+                      if (controller.isListeningForOtpAutoRetrieve)
                         Column(
                           children: const [
                             CustomLoader(),
@@ -180,11 +181,11 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
                         onFocusChange: (hasFocus) async {
                           if (hasFocus) await _scrollToBottomOnKeyboardOpen();
                         },
-                        onSubmit: (enteredOTP) async {
-                          final isValidOTP =
-                              await controller.verifyOTP(enteredOTP);
+                        onSubmit: (enteredOtp) async {
+                          final isValidOtp =
+                              await controller.verifyOtp(enteredOtp);
                           // Incorrect OTP
-                          if (!isValidOTP) {
+                          if (!isValidOtp) {
                             showSnackBar('The entered OTP is invalid!');
                           }
                         },

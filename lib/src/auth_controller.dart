@@ -8,7 +8,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       Provider.of<FirebasePhoneAuthController>(context, listen: listen);
 
   /// {@macro autoRetrievalTimeOutDuration}
-  static const kAutoRetrievalTimeOutDuration = Duration(seconds: 60);
+  static const kAutoRetrievalTimeOutDuration = Duration(minutes: 1);
 
   /// Firebase auth instance using the default [FirebaseApp].
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -31,7 +31,10 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   String? _verificationId;
 
   /// Timer object for SMS auto-retrieval.
-  Timer? _timer;
+  Timer? _otpAutoRetrievalTimer;
+
+  /// Timer object for OTP expiration.
+  Timer? _otpExpirationTimer;
 
   /// Whether OTP to the given phoneNumber is sent or not.
   bool codeSent = false;
@@ -63,6 +66,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     required bool signOutOnSuccessfulVerification,
     RecaptchaVerifier? recaptchaVerifierForWeb,
     Duration autoRetrievalTimeOutDuration = kAutoRetrievalTimeOutDuration,
+    Duration otpExpirationDuration = kAutoRetrievalTimeOutDuration,
   }) {
     _phoneNumber = phoneNumber;
     _signOutOnSuccessfulVerification = signOutOnSuccessfulVerification;
@@ -70,18 +74,45 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     _onCodeSent = onCodeSent;
     _onLoginFailed = onLoginFailed;
     _autoRetrievalTimeOutDuration = autoRetrievalTimeOutDuration;
+    _otpExpirationDuration = otpExpirationDuration;
     if (kIsWeb) _recaptchaVerifierForWeb = recaptchaVerifierForWeb;
   }
 
-  /// After a [Duration] of [timerCount], the library no more waits for SMS auto-retrieval.
-  Duration get timerCount =>
-      Duration(seconds: _autoRetrievalTimeOutDuration.inSeconds - (_timer?.tick ?? 0));
+  /// [otpExpirationTimeLeft] can be used to display a reverse countdown, starting from
+  /// [_otpExpirationDuration.inSeconds]s till 0, and can show the resend
+  /// button, to let user request a new OTP.
+  Duration get otpExpirationTimeLeft {
+    final otpTickDuration = Duration(
+      seconds: (_otpExpirationTimer?.tick ?? 0),
+    );
+    return _otpExpirationDuration - otpTickDuration;
+  }
 
-  /// Whether the timer is active or not.
-  bool get timerIsActive => _timer?.isActive ?? false;
+  /// [autoRetrievalTimeLeft] can be used to display a reverse countdown, starting from
+  /// [_autoRetrievalTimeOutDuration.inSeconds]s till 0, and can show the
+  /// the listening for OTP view, and also the time left.
+  ///
+  /// After this timer is exhausted, the device no longer tries to auto-fetch
+  /// the OTP, and requires user to manually enter it.
+  Duration get autoRetrievalTimeLeft {
+    final otpTickDuration = Duration(
+      seconds: (_otpAutoRetrievalTimer?.tick ?? 0),
+    );
+    return _autoRetrievalTimeOutDuration - otpTickDuration;
+  }
+
+  /// Whether the otp has expired or not.
+  bool get isOtpExpired => !(_otpExpirationTimer?.isActive ?? false);
+
+  /// Whether the otp retrieval timer is active or not.
+  bool get isListeningForOtpAutoRetrieve =>
+      _otpAutoRetrievalTimer?.isActive ?? false;
 
   /// {@macro autoRetrievalTimeOutDuration}
   static Duration _autoRetrievalTimeOutDuration = kAutoRetrievalTimeOutDuration;
+
+  /// {@macro otpExpirationDuration}
+  static Duration _otpExpirationDuration = kAutoRetrievalTimeOutDuration;
 
   /// Verify the OTP sent to [_phoneNumber] and login user is OTP was correct.
   ///
@@ -93,9 +124,10 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   ///
   /// Also, [_onLoginFailed] is called with [FirebaseAuthException]
   /// object to handle the error.
-  Future<bool> verifyOTP(String otp) async {
+  Future<bool> verifyOtp(String otp) async {
     if ((!kIsWeb && _verificationId == null) ||
         (kIsWeb && _webConfirmationResult == null)) return false;
+
     try {
       if (kIsWeb) {
         final userCredential = await _webConfirmationResult!.confirm(otp);
@@ -148,7 +180,6 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       _forceResendingToken = forceResendingToken;
       codeSent = true;
       _onCodeSent?.call();
-      notifyListeners();
       _setTimer();
     }
 
@@ -187,7 +218,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   }
 
   /// Called when the otp is verified either automatically (OTP auto fetched)
-  /// or [verifyOTP] was called with the correct OTP.
+  /// or [verifyOtp] was called with the correct OTP.
   ///
   /// If true is returned that means the user was logged in successfully.
   ///
@@ -225,12 +256,28 @@ class FirebasePhoneAuthController extends ChangeNotifier {
 
   /// Set timer after code sent.
   void _setTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (timer.tick == _autoRetrievalTimeOutDuration.inSeconds) _timer?.cancel();
-      try {
-        notifyListeners();
-      } catch (_) {}
-    });
+    _otpExpirationTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        if (timer.tick == _otpExpirationDuration.inSeconds) {
+          _otpExpirationTimer?.cancel();
+        }
+        try {
+          notifyListeners();
+        } catch (_) {}
+      },
+    );
+    _otpAutoRetrievalTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        if (timer.tick == _autoRetrievalTimeOutDuration.inSeconds) {
+          _otpAutoRetrievalTimer?.cancel();
+        }
+        try {
+          notifyListeners();
+        } catch (_) {}
+      },
+    );
     notifyListeners();
   }
 
@@ -253,10 +300,11 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     _onCodeSent = null;
     _signOutOnSuccessfulVerification = false;
     _forceResendingToken = null;
-    _timer?.cancel();
-    _timer = null;
+    _otpExpirationTimer?.cancel();
+    _otpExpirationTimer = null;
     _phoneNumber = null;
     _autoRetrievalTimeOutDuration = kAutoRetrievalTimeOutDuration;
+    _otpExpirationDuration = kAutoRetrievalTimeOutDuration;
     _verificationId = null;
   }
 }

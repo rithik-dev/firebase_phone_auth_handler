@@ -1,7 +1,9 @@
 ## [1.0.5] - 10/07/2022
 
 * BREAKING: Renamed flag timeOutDuration to autoRetrievalTimeOutDuration
-* BREAKING: Updated verifyOTP function signature to not take a named argument
+* BREAKING: Renamed verifyOTP to verifyOtp
+* BREAKING: Updated verifyOtp function signature to not take a named argument, and accept otp as a positional argument
+* Added a new otpExpirationDuration flag, as autoRetrievalTimeOutDuration is a completely different parameter.
 * Added callback onCodeSent and flag signOutOnSuccessfulVerification
 * Added isSendingCode flag to controller
 * Optimized code to reduce number of rebuilds

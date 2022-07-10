@@ -105,9 +105,13 @@ verified manually be calling `verifyOTP`. True if auto verified and false is ver
 or any internal error occurs, callback is triggered exposing `FirebaseAuthException`
 which can be used to handle the error.
 
+`onCodeSent` is called when the OTP is successfully sent to the phone number.
+
 ```dart
 FirebasePhoneAuthHandler(
     phoneNumber: "+919876543210",
+    // If true, the user is signed out before the onLoginSuccess callback is fired when the OTP is verified successfully.
+    signOutOnSuccessfulVerification: false,
     builder: (context, controller) {
       return SizedBox.shrink();
     },
@@ -248,20 +252,20 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
   @override
   void initState() {
     scrollController = ScrollController();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     scrollController.dispose();
     super.dispose();
   }
 
   @override
   void didChangeMetrics() {
-    final bottomViewInsets = WidgetsBinding.instance!.window.viewInsets.bottom;
+    final bottomViewInsets = WidgetsBinding.instance.window.viewInsets.bottom;
     isKeyboardVisible = bottomViewInsets > 0;
   }
 
@@ -285,6 +289,11 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
     return SafeArea(
       child: FirebasePhoneAuthHandler(
         phoneNumber: widget.phoneNumber,
+        signOutOnSuccessfulVerification: false,
+        autoRetrievalTimeOutDuration: const Duration(seconds: 60),
+        onCodeSent: () {
+          log(VerifyPhoneNumberScreen.id, msg: 'OTP sent!');
+        },
         onLoginSuccess: (userCredential, autoVerified) async {
           log(
             VerifyPhoneNumberScreen.id,
@@ -320,24 +329,38 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
               actions: [
                 if (controller.codeSent)
                   TextButton(
-                    child: Text(
-                      controller.timerIsActive
-                          ? '${controller.timerCount.inSeconds}s'
-                          : 'Resend',
-                      style: const TextStyle(color: Colors.blue, fontSize: 18),
-                    ),
                     onPressed: controller.timerIsActive
                         ? null
                         : () async {
                             log(VerifyPhoneNumberScreen.id, msg: 'Resend OTP');
                             await controller.sendOTP();
                           },
+                    child: Text(
+                      controller.timerIsActive
+                          ? '${controller.timerCount.inSeconds}s'
+                          : 'Resend',
+                      style: const TextStyle(color: Colors.blue, fontSize: 18),
+                    ),
                   ),
                 const SizedBox(width: 5),
               ],
             ),
-            body: controller.codeSent
-                ? ListView(
+            body: controller.isSendingCode
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: const [
+                      CustomLoader(),
+                      SizedBox(height: 50),
+                      Center(
+                        child: Text(
+                          'Sending OTP',
+                          style: TextStyle(fontSize: 25),
+                        ),
+                      ),
+                    ],
+                  )
+                : ListView(
                     padding: const EdgeInsets.all(20),
                     controller: scrollController,
                     children: [
@@ -381,28 +404,13 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
                           if (hasFocus) await _scrollToBottomOnKeyboardOpen();
                         },
                         onSubmit: (enteredOTP) async {
-                          final isValidOTP = await controller.verifyOTP(
-                            otp: enteredOTP,
-                          );
+                          final isValidOTP =
+                              await controller.verifyOTP(enteredOTP);
                           // Incorrect OTP
                           if (!isValidOTP) {
                             showSnackBar('The entered OTP is invalid!');
                           }
                         },
-                      ),
-                    ],
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: const [
-                      CustomLoader(),
-                      SizedBox(height: 50),
-                      Center(
-                        child: Text(
-                          'Sending OTP',
-                          style: TextStyle(fontSize: 25),
-                        ),
                       ),
                     ],
                   ),

@@ -1,4 +1,4 @@
-import 'package:firebase_phone_auth_handler/src/auth_controller.dart';
+import 'package:firebase_phone_auth_handler/src/auth_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

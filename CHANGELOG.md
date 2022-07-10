@@ -1,3 +1,14 @@
+## [1.0.5] - 10/07/2022
+
+* BREAKING: Renamed flag timeOutDuration to autoRetrievalTimeOutDuration
+* BREAKING: Updated verifyOTP function signature to not take a named argument
+* Added callback onCodeSent and flag signOutOnSuccessfulVerification
+* Added isSendingCode flag to controller
+* Optimized code to reduce number of rebuilds
+* Updated example app
+* Updated dependencies
+* Refactored code
+
 ## [1.0.4] - 07/06/2022
 
 * Updated example app

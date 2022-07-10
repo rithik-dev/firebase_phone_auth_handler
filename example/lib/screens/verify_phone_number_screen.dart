@@ -66,6 +66,11 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
     return SafeArea(
       child: FirebasePhoneAuthHandler(
         phoneNumber: widget.phoneNumber,
+        signOutOnSuccessfulVerification: false,
+        autoRetrievalTimeOutDuration: const Duration(seconds: 60),
+        onCodeSent: () {
+          log(VerifyPhoneNumberScreen.id, msg: 'OTP sent!');
+        },
         onLoginSuccess: (userCredential, autoVerified) async {
           log(
             VerifyPhoneNumberScreen.id,
@@ -117,8 +122,22 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
                 const SizedBox(width: 5),
               ],
             ),
-            body: controller.codeSent
-                ? ListView(
+            body: controller.isSendingCode
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: const [
+                      CustomLoader(),
+                      SizedBox(height: 50),
+                      Center(
+                        child: Text(
+                          'Sending OTP',
+                          style: TextStyle(fontSize: 25),
+                        ),
+                      ),
+                    ],
+                  )
+                : ListView(
                     padding: const EdgeInsets.all(20),
                     controller: scrollController,
                     children: [
@@ -162,28 +181,13 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
                           if (hasFocus) await _scrollToBottomOnKeyboardOpen();
                         },
                         onSubmit: (enteredOTP) async {
-                          final isValidOTP = await controller.verifyOTP(
-                            otp: enteredOTP,
-                          );
+                          final isValidOTP =
+                              await controller.verifyOTP(enteredOTP);
                           // Incorrect OTP
                           if (!isValidOTP) {
                             showSnackBar('The entered OTP is invalid!');
                           }
                         },
-                      ),
-                    ],
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: const [
-                      CustomLoader(),
-                      SizedBox(height: 50),
-                      Center(
-                        child: Text(
-                          'Sending OTP',
-                          style: TextStyle(fontSize: 25),
-                        ),
                       ),
                     ],
                   ),

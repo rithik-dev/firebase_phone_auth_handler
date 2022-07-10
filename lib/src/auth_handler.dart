@@ -1,10 +1,13 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_phone_auth_handler/src/auth_controller.dart';
+import 'package:firebase_phone_auth_handler/src/type_definitions.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+part 'auth_controller.dart';
 
 class FirebasePhoneAuthHandler extends StatefulWidget {
   const FirebasePhoneAuthHandler({
@@ -13,7 +16,9 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
     required this.builder,
     this.onLoginFailed,
     this.onLoginSuccess,
-    this.timeOutDuration = FirebasePhoneAuthController.kTimeOutDuration,
+    this.onCodeSent,
+    this.signOutOnSuccessfulVerification = false,
+    this.autoRetrievalTimeOutDuration = FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
     this.recaptchaVerifierForWebProvider,
   }) : super(key: key);
 
@@ -28,6 +33,26 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   /// {@endtemplate}
   final String phoneNumber;
 
+  /// {@template signOutOnSuccessfulVerification}
+  ///
+  /// If true, the user is signed out before the [onLoginSuccess]
+  /// callback is fired when the OTP is verified successfully.
+  ///
+  /// Is useful when you only want to verify phone number,
+  /// and not actually sign in the user.
+  ///
+  /// Defaults to false
+  ///
+  /// {@endtemplate}
+  final bool signOutOnSuccessfulVerification;
+
+  /// {@template onCodeSent}
+  ///
+  /// Callback called when the code is sent successfully to the phone number
+  ///
+  /// {@endtemplate}
+  final VoidCallback? onCodeSent;
+
   /// {@template onLoginSuccess}
   ///
   /// This callback is triggered when the phone number is verified and the user is
@@ -40,7 +65,7 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   /// True if auto verified and false is verified manually.
   ///
   /// {@endtemplate}
-  final FutureOr<void> Function(UserCredential, bool)? onLoginSuccess;
+  final OnLoginSuccess? onLoginSuccess;
 
   /// {@template onLoginFailed}
   ///
@@ -48,19 +73,19 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   /// [FirebaseAuthException] which contains information about the error.
   ///
   /// {@endtemplate}
-  final FutureOr<void> Function(FirebaseAuthException)? onLoginFailed;
+  final OnLoginFailed? onLoginFailed;
 
-  /// {@template timeOutDuration}
+  /// {@template autoRetrievalTimeOutDuration}
   ///
   /// The maximum amount of time you are willing to wait for SMS
   /// auto-retrieval to be completed by the library.
   ///
   /// Maximum allowed value is 2 minutes.
   ///
-  /// Defaults to [FirebasePhoneAuthController.kTimeOutDuration].
+  /// Defaults to [FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration].
   ///
   /// {@endtemplate}
-  final Duration timeOutDuration;
+  final Duration autoRetrievalTimeOutDuration;
 
   /// {@template recaptchaVerifierForWeb}
   ///
@@ -92,7 +117,7 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   ///
   /// {@endtemplate}
   static Future<void> signOut(BuildContext context) =>
-      FirebasePhoneAuthController.of(context, listen: false).signOut();
+      FirebasePhoneAuthController._of(context, listen: false).signOut();
 
   @override
   // ignore: library_private_types_in_public_api
@@ -104,18 +129,20 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
   @override
   void initState() {
     (() async {
-      final con = FirebasePhoneAuthController.of(context, listen: false);
+      final con = FirebasePhoneAuthController._of(context, listen: false);
 
       RecaptchaVerifier? captcha;
       if (widget.recaptchaVerifierForWebProvider != null) {
         captcha = widget.recaptchaVerifierForWebProvider!(kIsWeb);
       }
 
-      con.setData(
+      con._setData(
         phoneNumber: widget.phoneNumber,
         onLoginSuccess: widget.onLoginSuccess,
         onLoginFailed: widget.onLoginFailed,
-        timeOutDuration: widget.timeOutDuration,
+        autoRetrievalTimeOutDuration: widget.autoRetrievalTimeOutDuration,
+        onCodeSent: widget.onCodeSent,
+        signOutOnSuccessfulVerification: widget.signOutOnSuccessfulVerification,
         recaptchaVerifierForWeb: captcha,
       );
 
@@ -127,7 +154,7 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
   @override
   void dispose() {
     try {
-      FirebasePhoneAuthController.of(context, listen: false).clear();
+      FirebasePhoneAuthController._of(context, listen: false).clear();
     } catch (_) {}
     super.dispose();
   }

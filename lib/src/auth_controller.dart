@@ -1,19 +1,14 @@
-import 'dart:async';
-
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:provider/provider.dart';
+part of 'auth_handler.dart';
 
 class FirebasePhoneAuthController extends ChangeNotifier {
-  static FirebasePhoneAuthController of(
+  static FirebasePhoneAuthController _of(
     BuildContext context, {
     bool listen = true,
   }) =>
       Provider.of<FirebasePhoneAuthController>(context, listen: listen);
 
-  /// {@macro timeOutDuration}
-  static const kTimeOutDuration = Duration(seconds: 60);
+  /// {@macro autoRetrievalTimeOutDuration}
+  static const kAutoRetrievalTimeOutDuration = Duration(seconds: 60);
 
   /// Firebase auth instance using the default [FirebaseApp].
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -41,41 +36,52 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// Whether OTP to the given phoneNumber is sent or not.
   bool codeSent = false;
 
+  /// Whether OTP is being sent to the given phoneNumber.
+  bool get isSendingCode => !codeSent;
+
   /// Whether the current platform is web or not;
   bool get isWeb => kIsWeb;
 
+  /// {@macro signOutOnSuccessfulVerification}
+  late bool _signOutOnSuccessfulVerification;
+
+  /// {@macro onCodeSent}
+  VoidCallback? _onCodeSent;
+
   /// {@macro onLoginSuccess}
-  FutureOr<void> Function(UserCredential, bool)? _onLoginSuccess;
+  OnLoginSuccess? _onLoginSuccess;
 
   /// {@macro onLoginFailed}
-  FutureOr<void> Function(FirebaseAuthException)? _onLoginFailed;
+  OnLoginFailed? _onLoginFailed;
 
   /// Set callbacks and other data. (only for internal use)
-  ///
-  /// Do not call explicitly.
-  void setData({
+  void _setData({
     required String phoneNumber,
-    required FutureOr<void> Function(UserCredential, bool)? onLoginSuccess,
-    required FutureOr<void> Function(FirebaseAuthException)? onLoginFailed,
+    required OnLoginSuccess? onLoginSuccess,
+    required OnLoginFailed? onLoginFailed,
+    required VoidCallback? onCodeSent,
+    required bool signOutOnSuccessfulVerification,
     RecaptchaVerifier? recaptchaVerifierForWeb,
-    Duration timeOutDuration = kTimeOutDuration,
+    Duration autoRetrievalTimeOutDuration = kAutoRetrievalTimeOutDuration,
   }) {
     _phoneNumber = phoneNumber;
+    _signOutOnSuccessfulVerification = signOutOnSuccessfulVerification;
     _onLoginSuccess = onLoginSuccess;
+    _onCodeSent = onCodeSent;
     _onLoginFailed = onLoginFailed;
-    _timeoutDuration = timeOutDuration;
+    _autoRetrievalTimeOutDuration = autoRetrievalTimeOutDuration;
     if (kIsWeb) _recaptchaVerifierForWeb = recaptchaVerifierForWeb;
   }
 
   /// After a [Duration] of [timerCount], the library no more waits for SMS auto-retrieval.
   Duration get timerCount =>
-      Duration(seconds: _timeoutDuration.inSeconds - (_timer?.tick ?? 0));
+      Duration(seconds: _autoRetrievalTimeOutDuration.inSeconds - (_timer?.tick ?? 0));
 
   /// Whether the timer is active or not.
   bool get timerIsActive => _timer?.isActive ?? false;
 
-  /// {@macro timeOutDuration}
-  static Duration _timeoutDuration = kTimeOutDuration;
+  /// {@macro autoRetrievalTimeOutDuration}
+  static Duration _autoRetrievalTimeOutDuration = kAutoRetrievalTimeOutDuration;
 
   /// Verify the OTP sent to [_phoneNumber] and login user is OTP was correct.
   ///
@@ -87,7 +93,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   ///
   /// Also, [_onLoginFailed] is called with [FirebaseAuthException]
   /// object to handle the error.
-  Future<bool> verifyOTP({required String otp}) async {
+  Future<bool> verifyOTP(String otp) async {
     if ((!kIsWeb && _verificationId == null) ||
         (kIsWeb && _webConfirmationResult == null)) return false;
     try {
@@ -108,7 +114,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
         );
       }
     } on FirebaseAuthException catch (e) {
-      if (_onLoginFailed != null) _onLoginFailed!(e);
+      _onLoginFailed?.call(e);
       return false;
     } catch (e) {
       return false;
@@ -131,7 +137,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     }
 
     verificationFailedCallback(FirebaseAuthException authException) {
-      if (_onLoginFailed != null) _onLoginFailed!(authException);
+      _onLoginFailed?.call(authException);
     }
 
     codeSentCallback(
@@ -141,6 +147,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       _verificationId = verificationId;
       _forceResendingToken = forceResendingToken;
       codeSent = true;
+      _onCodeSent?.call();
       notifyListeners();
       _setTimer();
     }
@@ -156,6 +163,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
           _recaptchaVerifierForWeb,
         );
         codeSent = true;
+        _onCodeSent?.call();
         _setTimer();
       } else {
         await _auth.verifyPhoneNumber(
@@ -164,14 +172,14 @@ class FirebasePhoneAuthController extends ChangeNotifier {
           verificationFailed: verificationFailedCallback,
           codeSent: codeSentCallback,
           codeAutoRetrievalTimeout: codeAutoRetrievalTimeoutCallback,
-          timeout: _timeoutDuration,
+          timeout: _autoRetrievalTimeOutDuration,
           forceResendingToken: _forceResendingToken,
         );
       }
 
       return true;
     } on FirebaseAuthException catch (e) {
-      if (_onLoginFailed != null) _onLoginFailed!(e);
+      _onLoginFailed?.call(e);
       return false;
     } catch (e) {
       return false;
@@ -193,9 +201,8 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   }) async {
     if (kIsWeb) {
       if (userCredential != null) {
-        if (_onLoginSuccess != null) {
-          _onLoginSuccess!(userCredential, autoVerified);
-        }
+        if (_signOutOnSuccessfulVerification) await signOut();
+        _onLoginSuccess?.call(userCredential, autoVerified);
         return true;
       } else {
         return false;
@@ -205,10 +212,11 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     // Not on web.
     try {
       final authResult = await _auth.signInWithCredential(authCredential!);
-      if (_onLoginSuccess != null) _onLoginSuccess!(authResult, autoVerified);
+      if (_signOutOnSuccessfulVerification) await signOut();
+      _onLoginSuccess?.call(authResult, autoVerified);
       return true;
     } on FirebaseAuthException catch (e) {
-      if (_onLoginFailed != null) _onLoginFailed!(e);
+      _onLoginFailed?.call(e);
       return false;
     } catch (e) {
       return false;
@@ -218,8 +226,10 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// Set timer after code sent.
   void _setTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (timer.tick == _timeoutDuration.inSeconds) _timer?.cancel();
-      notifyListeners();
+      if (timer.tick == _autoRetrievalTimeOutDuration.inSeconds) _timer?.cancel();
+      try {
+        notifyListeners();
+      } catch (_) {}
     });
     notifyListeners();
   }
@@ -227,7 +237,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// {@macro signOut}
   Future<void> signOut() async {
     await _auth.signOut();
-    notifyListeners();
+    // notifyListeners();
   }
 
   /// Clear all data
@@ -240,11 +250,13 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     _webConfirmationResult = null;
     _onLoginSuccess = null;
     _onLoginFailed = null;
+    _onCodeSent = null;
+    _signOutOnSuccessfulVerification = false;
     _forceResendingToken = null;
     _timer?.cancel();
     _timer = null;
     _phoneNumber = null;
-    _timeoutDuration = kTimeOutDuration;
+    _autoRetrievalTimeOutDuration = kAutoRetrievalTimeOutDuration;
     _verificationId = null;
   }
 }

@@ -1,3 +1,8 @@
+## [1.0.5+1] - 11/07/2022
+
+* Fixed files formatting
+* Updated example app
+
 ## [1.0.5] - 10/07/2022
 
 * BREAKING: Renamed flag timeOutDuration to autoRetrievalTimeOutDuration

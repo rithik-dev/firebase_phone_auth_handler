@@ -290,7 +290,7 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
       child: FirebasePhoneAuthHandler(
         phoneNumber: widget.phoneNumber,
         signOutOnSuccessfulVerification: false,
-        autoRetrievalTimeOutDuration: const Duration(seconds: 30),
+        autoRetrievalTimeOutDuration: const Duration(seconds: 60),
         otpExpirationDuration: const Duration(seconds: 60),
         onCodeSent: () {
           log(VerifyPhoneNumberScreen.id, msg: 'OTP sent!');

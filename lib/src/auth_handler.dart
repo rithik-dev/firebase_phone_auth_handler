@@ -18,8 +18,10 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
     this.onLoginSuccess,
     this.onCodeSent,
     this.signOutOnSuccessfulVerification = false,
-    this.autoRetrievalTimeOutDuration = FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
-    this.otpExpirationDuration = FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
+    this.autoRetrievalTimeOutDuration =
+        FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
+    this.otpExpirationDuration =
+        FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
     this.recaptchaVerifierForWebProvider,
   }) : super(key: key);
 

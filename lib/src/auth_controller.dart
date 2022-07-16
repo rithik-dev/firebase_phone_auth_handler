@@ -155,11 +155,11 @@ class FirebasePhoneAuthController extends ChangeNotifier {
           autoVerified: false,
         );
       }
-    } on FirebaseAuthException catch (e) {
-      _onLoginFailed?.call(e);
+    } on FirebaseAuthException catch (e, s) {
+      _onLoginFailed?.call(e, s);
       return false;
-    } catch (e) {
-      _onError?.call(e);
+    } catch (e, s) {
+      _onError?.call(e, s);
       return false;
     }
   }
@@ -180,7 +180,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     }
 
     verificationFailedCallback(FirebaseAuthException authException) {
-      _onLoginFailed?.call(authException);
+      _onLoginFailed?.call(authException, null);
     }
 
     codeSentCallback(
@@ -220,11 +220,11 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       }
 
       return true;
-    } on FirebaseAuthException catch (e) {
-      _onLoginFailed?.call(e);
+    } on FirebaseAuthException catch (e, s) {
+      _onLoginFailed?.call(e, s);
       return false;
-    } catch (e) {
-      _onError?.call(e);
+    } catch (e, s) {
+      _onError?.call(e, s);
       return false;
     }
   }
@@ -267,11 +267,11 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       if (_signOutOnSuccessfulVerification) await signOut();
       _onLoginSuccess?.call(authResult, autoVerified);
       return true;
-    } on FirebaseAuthException catch (e) {
-      _onLoginFailed?.call(e);
+    } on FirebaseAuthException catch (e, s) {
+      _onLoginFailed?.call(e, s);
       return false;
-    } catch (e) {
-      _onError?.call(e);
+    } catch (e, s) {
+      _onError?.call(e, s);
       return false;
     }
   }

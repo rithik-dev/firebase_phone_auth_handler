@@ -1,5 +1,6 @@
 ## [1.0.6] - 16/07/2022
 
+* **BREAKING:** Added stack trace to onLoginFailed and onError callbacks
 * Added a boolean linkWithExistingUser to link the new credentials with an existing signed-in user, instead of creating a new one.
 * Added onError callback for general purpose errors by the library
 
@@ -10,9 +11,9 @@
 
 ## [1.0.5] - 10/07/2022
 
-* BREAKING: Renamed flag timeOutDuration to autoRetrievalTimeOutDuration
-* BREAKING: Renamed verifyOTP to verifyOtp
-* BREAKING: Updated verifyOtp function signature to not take a named argument, and accept otp as a positional argument
+* **BREAKING:** Renamed flag timeOutDuration to autoRetrievalTimeOutDuration
+* **BREAKING:** Renamed verifyOTP to verifyOtp
+* **BREAKING:** Updated verifyOtp function signature to not take a named argument, and accept otp as a positional argument
 * Added a new otpExpirationDuration flag, as autoRetrievalTimeOutDuration is a completely different parameter.
 * Added callback onCodeSent and flag signOutOnSuccessfulVerification
 * Added isSendingCode flag to controller

@@ -121,10 +121,10 @@ FirebasePhoneAuthHandler(
       debugPrint("autoVerified: $autoVerified");
       debugPrint("Login success UID: ${userCredential.user?.uid}");
     },
-    onLoginFailed: (authException) {
+    onLoginFailed: (authException, stackTrace) {
       debugPrint("An error occurred: ${authException.message}");
     },
-    onError: (error) {},
+    onError: (error, stackTrace) {},
 ),
 ```
 
@@ -320,12 +320,12 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
             (route) => false,
           );
         },
-        onLoginFailed: (authException) {
+        onLoginFailed: (authException, stackTrace) {
           showSnackBar('Something went wrong!');
           log(VerifyPhoneNumberScreen.id, error: authException.message);
           // handle error further if needed
         },
-        onError: (error) {
+        onError: (error, stackTrace) {
           showSnackBar('An error occurred!');
         },
         builder: (context, controller) {

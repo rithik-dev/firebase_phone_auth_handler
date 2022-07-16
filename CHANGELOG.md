@@ -3,6 +3,8 @@
 * **BREAKING:** Added stack trace to onLoginFailed and onError callbacks
 * Added a boolean linkWithExistingUser to link the new credentials with an existing signed-in user, instead of creating a new one.
 * Added onError callback for general purpose errors by the library
+* Updated example app
+* Updated dependencies
 
 ## [1.0.5+1] - 11/07/2022
 

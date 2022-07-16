@@ -94,17 +94,34 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
             (route) => false,
           );
         },
-        onLoginFailed: (authException) {
-          if (authException.code == 'invalid-verification-code') {
-            // invalid otp entered
-            return showSnackBar('The entered OTP is invalid!');
-          }
+        onLoginFailed: (authException, stackTrace) {
+          log(
+            VerifyPhoneNumberScreen.id,
+            msg: authException.message,
+            error: authException,
+            stackTrace: stackTrace,
+          );
 
-          showSnackBar('Something went wrong!');
-          log(VerifyPhoneNumberScreen.id, error: authException.message);
-          // handle error further if needed
+          switch (authException.code) {
+            case 'invalid-phone-number':
+              // invalid phone number
+              return showSnackBar('Invalid phone number!');
+            case 'invalid-verification-code':
+              // invalid otp entered
+              return showSnackBar('The entered OTP is invalid!');
+            // handle other error codes
+            default:
+              showSnackBar('Something went wrong!');
+            // handle error further if needed
+          }
         },
-        onError: (error) {
+        onError: (error, stackTrace) {
+          log(
+            VerifyPhoneNumberScreen.id,
+            error: error,
+            stackTrace: stackTrace,
+          );
+
           showSnackBar('An error occurred!');
         },
         builder: (context, controller) {

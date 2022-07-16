@@ -292,8 +292,8 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
     return SafeArea(
       child: FirebasePhoneAuthHandler(
         phoneNumber: widget.phoneNumber,
-        signOutOnSuccessfulVerification: false, // default
-        linkWithExistingUser: false,  // default
+        signOutOnSuccessfulVerification: false,
+        linkWithExistingUser: false,
         autoRetrievalTimeOutDuration: const Duration(seconds: 60),
         otpExpirationDuration: const Duration(seconds: 60),
         onCodeSent: () {
@@ -321,11 +321,33 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
           );
         },
         onLoginFailed: (authException, stackTrace) {
-          showSnackBar('Something went wrong!');
-          log(VerifyPhoneNumberScreen.id, error: authException.message);
-          // handle error further if needed
+          log(
+            VerifyPhoneNumberScreen.id,
+            msg: authException.message,
+            error: authException,
+            stackTrace: stackTrace,
+          );
+
+          switch (authException.code) {
+            case 'invalid-phone-number':
+              // invalid phone number
+              return showSnackBar('Invalid phone number!');
+            case 'invalid-verification-code':
+              // invalid otp entered
+              return showSnackBar('The entered OTP is invalid!');
+            // handle other error codes
+            default:
+              showSnackBar('Something went wrong!');
+            // handle error further if needed
+          }
         },
         onError: (error, stackTrace) {
+          log(
+            VerifyPhoneNumberScreen.id,
+            error: error,
+            stackTrace: stackTrace,
+          );
+
           showSnackBar('An error occurred!');
         },
         builder: (context, controller) {
@@ -412,11 +434,14 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
                           if (hasFocus) await _scrollToBottomOnKeyboardOpen();
                         },
                         onSubmit: (enteredOtp) async {
-                          final isValidOtp =
+                          final verified =
                               await controller.verifyOtp(enteredOtp);
-                          // Incorrect OTP
-                          if (!isValidOtp) {
-                            showSnackBar('The entered OTP is invalid!');
+                          if (verified) {
+                            // number verify success
+                            // will call onLoginSuccess handler
+                          } else {
+                            // phone verification failed
+                            // will call onLoginFailed or onError callbacks with the error
                           }
                         },
                       ),

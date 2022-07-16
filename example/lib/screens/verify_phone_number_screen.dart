@@ -95,6 +95,11 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
           );
         },
         onLoginFailed: (authException) {
+          if (authException.code == 'invalid-verification-code') {
+            // invalid otp entered
+            return showSnackBar('The entered OTP is invalid!');
+          }
+
           showSnackBar('Something went wrong!');
           log(VerifyPhoneNumberScreen.id, error: authException.message);
           // handle error further if needed
@@ -186,11 +191,14 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
                           if (hasFocus) await _scrollToBottomOnKeyboardOpen();
                         },
                         onSubmit: (enteredOtp) async {
-                          final isValidOtp =
+                          final verified =
                               await controller.verifyOtp(enteredOtp);
-                          // Incorrect OTP
-                          if (!isValidOtp) {
-                            showSnackBar('The entered OTP is invalid!');
+                          if (verified) {
+                            // number verify success
+                            // will call onLoginSuccess handler
+                          } else {
+                            // phone verification failed
+                            // will call onLoginFailed or onError callbacks with the error
                           }
                         },
                       ),

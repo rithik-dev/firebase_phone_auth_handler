@@ -68,6 +68,8 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   ///
   /// Make sure a user is signed in already, else an error is thrown.
   ///
+  /// NOTE: Does not work on web platforms.
+  ///
   /// Defaults to false
   ///
   /// {@endtemplate}

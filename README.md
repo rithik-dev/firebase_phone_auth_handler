@@ -112,6 +112,8 @@ FirebasePhoneAuthHandler(
     phoneNumber: "+919876543210",
     // If true, the user is signed out before the onLoginSuccess callback is fired when the OTP is verified successfully.
     signOutOnSuccessfulVerification: false,
+    
+    linkWithExistingUser: false,
     builder: (context, controller) {
       return SizedBox.shrink();
     },
@@ -122,6 +124,7 @@ FirebasePhoneAuthHandler(
     onLoginFailed: (authException) {
       debugPrint("An error occurred: ${authException.message}");
     },
+    onError: (error) {},
 ),
 ```
 
@@ -289,7 +292,8 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
     return SafeArea(
       child: FirebasePhoneAuthHandler(
         phoneNumber: widget.phoneNumber,
-        signOutOnSuccessfulVerification: false,
+        signOutOnSuccessfulVerification: false, // default
+        linkWithExistingUser: false,  // default
         autoRetrievalTimeOutDuration: const Duration(seconds: 60),
         otpExpirationDuration: const Duration(seconds: 60),
         onCodeSent: () {
@@ -320,6 +324,9 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
           showSnackBar('Something went wrong!');
           log(VerifyPhoneNumberScreen.id, error: authException.message);
           // handle error further if needed
+        },
+        onError: (error) {
+          showSnackBar('An error occurred!');
         },
         builder: (context, controller) {
           return Scaffold(

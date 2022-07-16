@@ -1,3 +1,8 @@
+## [1.0.6] - 16/07/2022
+
+* Added a boolean linkWithExistingUser to link the new credentials with an existing signed-in user, instead of creating a new one.
+* Added onError callback for general purpose errors by the library
+
 ## [1.0.5+1] - 11/07/2022
 
 * Fixed files formatting

@@ -57,22 +57,32 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// {@macro onLoginFailed}
   OnLoginFailed? _onLoginFailed;
 
+  /// {@macro onError}
+  OnError? _onError;
+
+  /// {@macro linkWithExistingUser}
+  late bool _linkWithExistingUser;
+
   /// Set callbacks and other data. (only for internal use)
   void _setData({
     required String phoneNumber,
     required OnLoginSuccess? onLoginSuccess,
     required OnLoginFailed? onLoginFailed,
+    required OnError? onError,
     required VoidCallback? onCodeSent,
     required bool signOutOnSuccessfulVerification,
-    RecaptchaVerifier? recaptchaVerifierForWeb,
-    Duration autoRetrievalTimeOutDuration = kAutoRetrievalTimeOutDuration,
-    Duration otpExpirationDuration = kAutoRetrievalTimeOutDuration,
+    required RecaptchaVerifier? recaptchaVerifierForWeb,
+    required Duration autoRetrievalTimeOutDuration,
+    required Duration otpExpirationDuration,
+    required bool linkWithExistingUser,
   }) {
     _phoneNumber = phoneNumber;
     _signOutOnSuccessfulVerification = signOutOnSuccessfulVerification;
     _onLoginSuccess = onLoginSuccess;
-    _onCodeSent = onCodeSent;
     _onLoginFailed = onLoginFailed;
+    _onError = onError;
+    _onCodeSent = onCodeSent;
+    _linkWithExistingUser = linkWithExistingUser;
     _autoRetrievalTimeOutDuration = autoRetrievalTimeOutDuration;
     _otpExpirationDuration = otpExpirationDuration;
     if (kIsWeb) _recaptchaVerifierForWeb = recaptchaVerifierForWeb;
@@ -149,6 +159,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       _onLoginFailed?.call(e);
       return false;
     } catch (e) {
+      _onError?.call(e);
       return false;
     }
   }
@@ -213,6 +224,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       _onLoginFailed?.call(e);
       return false;
     } catch (e) {
+      _onError?.call(e);
       return false;
     }
   }
@@ -242,7 +254,16 @@ class FirebasePhoneAuthController extends ChangeNotifier {
 
     // Not on web.
     try {
-      final authResult = await _auth.signInWithCredential(authCredential!);
+      late final UserCredential authResult;
+
+      if (_linkWithExistingUser) {
+        authResult = await _auth.currentUser!.linkWithCredential(
+          authCredential!,
+        );
+      } else {
+        authResult = await _auth.signInWithCredential(authCredential!);
+      }
+
       if (_signOutOnSuccessfulVerification) await signOut();
       _onLoginSuccess?.call(authResult, autoVerified);
       return true;
@@ -250,6 +271,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       _onLoginFailed?.call(e);
       return false;
     } catch (e) {
+      _onError?.call(e);
       return false;
     }
   }
@@ -297,12 +319,14 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     _webConfirmationResult = null;
     _onLoginSuccess = null;
     _onLoginFailed = null;
+    _onError = null;
     _onCodeSent = null;
     _signOutOnSuccessfulVerification = false;
     _forceResendingToken = null;
     _otpExpirationTimer?.cancel();
     _otpExpirationTimer = null;
     _phoneNumber = null;
+    _linkWithExistingUser = false;
     _autoRetrievalTimeOutDuration = kAutoRetrievalTimeOutDuration;
     _otpExpirationDuration = kAutoRetrievalTimeOutDuration;
     _verificationId = null;

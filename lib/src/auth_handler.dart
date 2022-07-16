@@ -14,10 +14,12 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
     Key? key,
     required this.phoneNumber,
     required this.builder,
-    this.onLoginFailed,
     this.onLoginSuccess,
+    this.onLoginFailed,
+    this.onError,
     this.onCodeSent,
     this.signOutOnSuccessfulVerification = false,
+    this.linkWithExistingUser = false,
     this.autoRetrievalTimeOutDuration =
         FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
     this.otpExpirationDuration =
@@ -56,6 +58,21 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   /// {@endtemplate}
   final VoidCallback? onCodeSent;
 
+  /// {@template linkWithExistingUser}
+  ///
+  /// If true, links the generated credentials to an existing signed in user,
+  /// and not creating new session.
+  ///
+  /// Internally, if true, this calls the linkWithCredential method instead of
+  /// signInWithCredential.
+  ///
+  /// Make sure a user is signed in already, else an error is thrown.
+  ///
+  /// Defaults to false
+  ///
+  /// {@endtemplate}
+  final bool linkWithExistingUser;
+
   /// {@template onLoginSuccess}
   ///
   /// This callback is triggered when the phone number is verified and the user is
@@ -77,6 +94,15 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   ///
   /// {@endtemplate}
   final OnLoginFailed? onLoginFailed;
+
+  /// {@template onError}
+  ///
+  /// Called when a general error occurs.
+  ///
+  /// If the error is a [FirebaseAuthException], then [onLoginFailed] is called.
+  ///
+  /// {@endtemplate}
+  final OnError? onError;
 
   /// {@template autoRetrievalTimeOutDuration}
   ///
@@ -161,9 +187,11 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
         phoneNumber: widget.phoneNumber,
         onLoginSuccess: widget.onLoginSuccess,
         onLoginFailed: widget.onLoginFailed,
+        onError: widget.onError,
         autoRetrievalTimeOutDuration: widget.autoRetrievalTimeOutDuration,
         otpExpirationDuration: widget.otpExpirationDuration,
         onCodeSent: widget.onCodeSent,
+        linkWithExistingUser: widget.linkWithExistingUser,
         signOutOnSuccessfulVerification: widget.signOutOnSuccessfulVerification,
         recaptchaVerifierForWeb: captcha,
       );

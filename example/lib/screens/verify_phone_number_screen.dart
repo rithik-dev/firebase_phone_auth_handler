@@ -67,6 +67,7 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
       child: FirebasePhoneAuthHandler(
         phoneNumber: widget.phoneNumber,
         signOutOnSuccessfulVerification: false,
+        linkWithExistingUser: false,
         autoRetrievalTimeOutDuration: const Duration(seconds: 60),
         otpExpirationDuration: const Duration(seconds: 60),
         onCodeSent: () {
@@ -97,6 +98,9 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
           showSnackBar('Something went wrong!');
           log(VerifyPhoneNumberScreen.id, error: authException.message);
           // handle error further if needed
+        },
+        onError: (error) {
+          showSnackBar('An error occurred!');
         },
         builder: (context, controller) {
           return Scaffold(

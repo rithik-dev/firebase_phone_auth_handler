@@ -180,7 +180,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     }
 
     verificationFailedCallback(FirebaseAuthException authException) {
-      _onLoginFailed?.call(authException, null);
+      _onLoginFailed?.call(authException, StackTrace.current);
     }
 
     codeSentCallback(

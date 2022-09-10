@@ -6,7 +6,7 @@ typedef OnLoginSuccess = FutureOr<void> Function(UserCredential, bool);
 
 typedef OnLoginFailed = FutureOr<void> Function(
   FirebaseAuthException,
-  StackTrace?,
+  StackTrace,
 );
 
 typedef OnError = FutureOr<void> Function(

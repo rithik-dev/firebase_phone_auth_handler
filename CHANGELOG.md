@@ -1,3 +1,9 @@
+## [1.0.7] - 24/10/2022
+
+* Stacktrace in onLoginFailed is now non-nullable
+* Updated a dependency to the latest release
+* Updated example app
+
 ## [1.0.6] - 16/07/2022
 
 * **BREAKING:** Added stack trace to onLoginFailed and onError callbacks

@@ -12,8 +12,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  pinput: ^2.2.11
-  firebase_core: ^1.19.1
+  pinput: ^2.2.16
+  firebase_core: ^2.1.0
   easy_container: ^1.0.4
   intl_phone_field: ^3.1.0
   firebase_phone_auth_handler:

@@ -327,6 +327,8 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     _forceResendingToken = null;
     _otpExpirationTimer?.cancel();
     _otpExpirationTimer = null;
+    _otpAutoRetrievalTimer?.cancel();
+    _otpAutoRetrievalTimer = null;
     _phoneNumber = null;
     _linkWithExistingUser = false;
     _autoRetrievalTimeOutDuration = kAutoRetrievalTimeOutDuration;

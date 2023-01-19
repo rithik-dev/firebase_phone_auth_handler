@@ -215,7 +215,9 @@ class FirebasePhoneAuthController extends ChangeNotifier {
           codeSent: codeSentCallback,
           codeAutoRetrievalTimeout: codeAutoRetrievalTimeoutCallback,
           timeout: _autoRetrievalTimeOutDuration,
-          forceResendingToken: _forceResendingToken,
+          forceResendingToken: (_otpAutoRetrievalTimer?.isActive ?? false)
+              ? _forceResendingToken
+              : null,
         );
       }
 

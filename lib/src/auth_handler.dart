@@ -210,11 +210,11 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
   }
 
   @override
-  void dispose() {
+  void deactivate() {
     try {
       FirebasePhoneAuthController._of(context, listen: false).clear();
     } catch (_) {}
-    super.dispose();
+    super.deactivate();
   }
 
   @override

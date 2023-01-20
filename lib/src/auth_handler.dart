@@ -19,6 +19,7 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
     this.onError,
     this.onCodeSent,
     this.signOutOnSuccessfulVerification = false,
+    this.sendOtpOnInitialize = true,
     this.linkWithExistingUser = false,
     this.autoRetrievalTimeOutDuration =
         FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
@@ -57,6 +58,11 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   ///
   /// {@endtemplate}
   final VoidCallback? onCodeSent;
+
+  /// {@template sendOtpOnInitialize}
+  /// Whether to send OTP as soon as the widget initializes or not
+  /// {@endtemplate}
+  final bool sendOtpOnInitialize;
 
   /// {@template linkWithExistingUser}
   ///
@@ -198,17 +204,17 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
         recaptchaVerifierForWeb: captcha,
       );
 
-      await con.sendOTP();
+      if (widget.sendOtpOnInitialize) await con.sendOTP();
     })();
     super.initState();
   }
 
   @override
-  void dispose() {
+  void deactivate() {
     try {
       FirebasePhoneAuthController._of(context, listen: false).clear();
     } catch (_) {}
-    super.dispose();
+    super.deactivate();
   }
 
   @override

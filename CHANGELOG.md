@@ -1,3 +1,11 @@
+## [1.0.8] - 20/01/2023
+
+* Added sendOtpOnInitialize parameter to the handler
+* Fixed OTP resend issue if the OTP expiration timer is still active
+* Fixed #15
+* Added shouldAwaitCodeSend to the sendOTP fn to give more control over the function
+* Updated dependencies
+
 ## [1.0.7] - 24/10/2022
 
 * Stacktrace in onLoginFailed is now non-nullable

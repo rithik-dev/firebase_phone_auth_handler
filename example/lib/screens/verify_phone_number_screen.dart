@@ -67,6 +67,7 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
       child: FirebasePhoneAuthHandler(
         phoneNumber: widget.phoneNumber,
         signOutOnSuccessfulVerification: false,
+        sendOtpOnInitialize: true,
         linkWithExistingUser: false,
         autoRetrievalTimeOutDuration: const Duration(seconds: 60),
         otpExpirationDuration: const Duration(seconds: 60),

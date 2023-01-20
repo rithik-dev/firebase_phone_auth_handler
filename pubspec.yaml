@@ -11,8 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  provider: ^6.0.4
-  firebase_auth: ^4.0.2
+  provider: ^6.0.5
+  firebase_auth: ^4.2.5
 
 dev_dependencies:
   flutter_lints: ^2.0.1

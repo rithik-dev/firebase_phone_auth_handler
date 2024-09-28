@@ -1,3 +1,7 @@
+## [1.0.9] - 28/09/2024
+
+* Updated dependencies
+
 ## [1.0.8] - 20/01/2023
 
 * Added sendOtpOnInitialize parameter to the handler

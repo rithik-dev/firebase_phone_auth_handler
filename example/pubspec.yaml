@@ -1,21 +1,21 @@
 name: phone_auth_handler_demo
 description: Demo for the package firebase_phone_auth_handler on pub.dev
 
-publish_to: 'none'
+publish_to: "none"
 
-version: 1.0.0+1
+version: 1.0.1
 
 environment:
-  sdk: ">=2.16.1 <3.0.0"
+  sdk: ">=2.16.1 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
-  pinput: ^2.2.16
-  firebase_core: ^2.1.0
+  pinput: ^5.0.0
+  firebase_core: ^3.6.0
   easy_container: ^1.0.4
-  intl_phone_field: ^3.1.0
+  intl_phone_field: ^3.2.0
   firebase_phone_auth_handler:
     path: "../"
 
@@ -23,8 +23,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^2.0.1
-
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true

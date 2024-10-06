@@ -7,13 +7,10 @@ import 'package:phone_auth_handler_demo/widgets/custom_loader.dart';
 class SplashScreen extends StatefulWidget {
   static const id = 'SplashScreen';
 
-  const SplashScreen({
-    Key? key,
-  }) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {

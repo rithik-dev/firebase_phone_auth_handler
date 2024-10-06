@@ -7,13 +7,10 @@ import 'package:phone_auth_handler_demo/utils/helpers.dart';
 class AuthenticationScreen extends StatefulWidget {
   static const id = 'AuthenticationScreen';
 
-  const AuthenticationScreen({
-    Key? key,
-  }) : super(key: key);
+  const AuthenticationScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _AuthenticationScreenState createState() => _AuthenticationScreenState();
+  State<AuthenticationScreen> createState() => _AuthenticationScreenState();
 }
 
 class _AuthenticationScreenState extends State<AuthenticationScreen> {

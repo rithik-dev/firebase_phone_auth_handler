@@ -11,9 +11,9 @@ class VerifyPhoneNumberScreen extends StatefulWidget {
   final String phoneNumber;
 
   const VerifyPhoneNumberScreen({
-    Key? key,
+    super.key,
     required this.phoneNumber,
-  }) : super(key: key);
+  });
 
   @override
   State<VerifyPhoneNumberScreen> createState() =>
@@ -42,7 +42,8 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
 
   @override
   void didChangeMetrics() {
-    final bottomViewInsets = WidgetsBinding.instance.window.viewInsets.bottom;
+    final bottomViewInsets = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
     isKeyboardVisible = bottomViewInsets > 0;
   }
 

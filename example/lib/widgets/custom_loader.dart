@@ -8,11 +8,11 @@ class CustomLoader extends StatelessWidget {
   final double padding;
 
   const CustomLoader({
-    Key? key,
+    super.key,
     this.color,
     this.radius = 15,
     this.padding = 5,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

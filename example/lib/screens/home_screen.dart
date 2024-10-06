@@ -8,9 +8,7 @@ import 'package:phone_auth_handler_demo/utils/helpers.dart';
 class HomeScreen extends StatelessWidget {
   static const id = 'HomeScreen';
 
-  const HomeScreen({
-    Key? key,
-  }) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -41,12 +39,13 @@ class HomeScreen extends StatelessWidget {
                   await FirebasePhoneAuthHandler.signOut(context);
                   showSnackBar('Logged out successfully!');
 
-                  // ignore: use_build_context_synchronously
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    AuthenticationScreen.id,
-                    (route) => false,
-                  );
+                  if (context.mounted) {
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      AuthenticationScreen.id,
+                      (route) => false,
+                    );
+                  }
                 },
                 child: const Text('Logout'),
               ),

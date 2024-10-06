@@ -1,16 +1,7 @@
-# phone_auth_handler_demo
+# Firebase Phone Auth Handler Demo
 
-Demo for the package firebase_phone_auth_handler on pub.dev
+Build the app and run it.
 
-## Getting Started
+## How to test the app
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+To test the example app, you can use "+91 9999999999" as the phone number and "000000" as the OTP.

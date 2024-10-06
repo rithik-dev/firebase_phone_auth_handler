@@ -1,144 +1,98 @@
 # [FirebasePhoneAuthHandler](https://pub.dev/packages/firebase_phone_auth_handler) For Flutter
 [![pub package](https://img.shields.io/pub/v/firebase_phone_auth_handler.svg)](https://pub.dev/packages/firebase_phone_auth_handler)
-[![likes](https://badges.bar/firebase_phone_auth_handler/likes)](https://pub.dev/packages/firebase_phone_auth_handler/score)
-[![popularity](https://badges.bar/firebase_phone_auth_handler/popularity)](https://pub.dev/packages/firebase_phone_auth_handler/score)
-[![pub points](https://badges.bar/firebase_phone_auth_handler/pub%20points)](https://pub.dev/packages/firebase_phone_auth_handler/score)
+[![likes](https://img.shields.io/pub/likes/firebase_phone_auth_handler)](https://pub.dev/packages/firebase_phone_auth_handler/score)
+[![popularity](https://img.shields.io/pub/popularity/firebase_phone_auth_handler)](https://pub.dev/packages/firebase_phone_auth_handler/score)
+[![pub points](https://img.shields.io/pub/points/firebase_phone_auth_handler)](https://pub.dev/packages/firebase_phone_auth_handler/score)
+[![code size](https://img.shields.io/github/languages/code-size/rithik-dev/firebase_phone_auth_handler)](https://github.com/rithik-dev/firebase_phone_auth_handler)
+[![license MIT](https://img.shields.io/badge/license-MIT-purple.svg)](https://opensource.org/licenses/MIT)
 
-* An easy-to-use firebase phone authentication package to easily send and verify OTP's with auto-fetch OTP support via SMS.
-* Supports OTP on web out of the box.
+---
 
-## Screenshots
-<img src="https://user-images.githubusercontent.com/56810766/166433323-39875cc4-440a-4556-9550-1b5ab4e8f310.gif" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599396-33876600-a2f9-11eb-9516-d0f189b88a53.jpeg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/115599390-31bda280-a2f9-11eb-8990-d3df76d3aabc.jpg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/166431851-228693fe-7430-4c66-baa2-65acc2db9db4.jpg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/166431847-06aceb70-db87-4138-8146-e9c935a51cf2.jpg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/166431849-28a4563d-2c59-4da7-b21a-355dc0b72448.jpg" height=600/>&nbsp;&nbsp;<img src="https://user-images.githubusercontent.com/56810766/166431854-f0f8ec50-a105-47ab-97a1-d12dbaf13ce8.jpg" height=600/>
+An easy-to-use firebase phone authentication package to easily send and verify OTP's with auto-fetch OTP support via SMS. Supports OTP on web out of the box.
 
-## Getting Started
-<b>Step 1</b>: Before you can add Firebase to your app, you need to create a Firebase project to connect to your application.
-Visit [`Understand Firebase Projects`](https://firebase.google.com/docs/projects/learn-more) to learn more about Firebase projects.
+---
 
-<b>Step 2</b>: To use Firebase in your app, you need to register your app with your Firebase project.
-Registering your app is often called "adding" your app to your project.
+# 🗂️ Table of Contents
 
-Also, register a web app if using on the web.
-Follow on the screen instructions to initialize the project.
+- **[📷 Screenshots](#-screenshots)**
+- **[✨ Features](#-features)**
+- **[🚀 Getting Started](#-getting-started)**
+- **[🛠️ Platform-specific Setup](#%EF%B8%8F-platform-specific-setup)**  
+  - [Web](#web-recaptcha)
+- **[❓ Usage](#-usage)**  
+- **[🎯 Sample Usage](#-sample-usage)**
+- **[👤 Collaborators](#-collaborators)**
 
-Add the latest version 'firebase-auth' CDN from [here](https://firebase.google.com/docs/web/setup#available-libraries).
-(Tested on version 8.6.1)
+---
 
-<b> Step 3</b>: Add a Firebase configuration file and the SDK's. (google-services)
+# 📷 Screenshots
 
-<b> Step 4</b>: When the basic setup is done, open the console and then the
-project and head over to `Authentication` from the left drawer menu.
+| Demo | Sending OTP | Auto Fetch OTP |
+|-----------------------------------|-------------------------------------|-------------------------------------|
+| <img src="https://user-images.githubusercontent.com/56810766/166433323-39875cc4-440a-4556-9550-1b5ab4e8f310.gif" height="500"> | <img src="https://user-images.githubusercontent.com/56810766/115599396-33876600-a2f9-11eb-9516-d0f189b88a53.jpeg" height="500"> | <img src="https://user-images.githubusercontent.com/56810766/115599390-31bda280-a2f9-11eb-8990-d3df76d3aabc.jpg" height="500"> |
 
-<b> Step 5</b>: Click on `Sign-in method` next to the `Users` tab and enable `Phone`.
+---
 
-<b> Step 6</b>: Follow the additional configuration steps for the platforms to avoid any errors.
+# ✨ Features
 
-<b> Step 7</b>: IMPORTANT: Do not forget to enable the [`Android Device Verification`](https://console.cloud.google.com/apis/library/androidcheck.googleapis.com)
-service from Google Cloud Platform. (make sure the correct project is selected).
+- **Simple OTP Verification Process:** This package simplifies phone number authentication with Firebase, automatically managing OTP request and verification for you.
+- **SMS Autofill Support:** Automatically fetches and enters the received OTP from the SMS, streamlining the user experience on Android.
+- **Easy-to-use Callbacks:** You can define custom callbacks like `onLoginSuccess`, `onLoginFailed` etc., making the widget simple to use.
+- **Configurable Resend OTP Timer:** You can easily configure the time interval for OTP resend requests, ensuring users don’t spam the request button.
+- **Cross-Platform Support:** It provides full support for Android, iOS and Web, ensuring a consistent experience across platforms.
+- **Widget-Based Approach:** The package integrates well with Flutter’s UI-driven architecture, offering a widget-based solution for handling phone authentication.
+- **Seamless Integration:** The package can be easily integrated into any Flutter app, allowing quick and reliable phone authentication with Firebase.
 
-<b> Step 8</b>: Lastly, add [`firebase_core`](https://pub.dev/packages/firebase_core) as a dependency in your pubspec.yaml file.
-and call `Firebase.initializeApp()` in the `main` method as shown:
+---
+
+# 🚀 Getting Started
+
+## Step 1: Create Firebase Project
+Create a Firebase project. Learn more about Firebase projects [**here**](https://firebase.google.com/docs/projects/learn-more).
+
+## Step 2: Register your apps and configure Firebase
+Add your Android, iOS, Web apps to your Firebase project and configure the Firebase the apps by following the setup instructions for [Android](https://firebase.google.com/docs/flutter/setup?platform=android), [iOS](https://firebase.google.com/docs/flutter/setup?platform=ios) and [Web](https://firebase.google.com/docs/flutter/setup?platform=web) separately.
+
+> [!IMPORTANT]
+> Follow additional configration steps for Firebase Auth [here](https://firebase.google.com/docs/auth/flutter/start)
+
+## Step 3: Enable Phone Authentication
+Open the Firebase Console, go to the **Authentication** section in your project.
+Select **Sign-in method** and enable **Phone**.
+
+## Step 4: Enable Google Play Integrity API (Android Only)
+For Android, enable the [`Google Play Integrity API`](https://console.cloud.google.com/apis/library/playintegrity.googleapis.com) from Google Cloud Platform.
+
+## Step 5: Add firebase_core dependency
+Add [`firebase_core`](https://pub.dev/packages/firebase_core) as a dependency in your pubspec.yaml file.
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+
+  firebase_core:
+```
+
+## Step 6: Initialize Firebase
+Call `Firebase.initializeApp()` in the `main()` method as shown to intialize Firebase in your project.
+
 ```dart
+import 'package:firebase_core/firebase_core.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(_MainApp());
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(MyApp());
 }
 ```
 
-## Usage
+---
 
-To use this plugin, add [`firebase_phone_auth_handler`](https://pub.dev/packages/firebase_phone_auth_handler) as a dependency in your pubspec.yaml file.
+# 🛠️ Platform-Specific Setup
 
-```yaml
-  dependencies:
-    flutter:
-      sdk: flutter
-    firebase_phone_auth_handler:
-```
+## Web (reCAPTCHA)
 
-First and foremost, import the widget.
-```dart
-import 'package:firebase_phone_auth_handler/firebase_phone_auth_handler.dart';
-```
-
-Wrap the `MaterialApp` with `FirebasePhoneAuthProvider` to enable your application to support phone authentication like shown.
-```dart
-class _MainApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return FirebasePhoneAuthProvider(
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: HomeScreen(),
-      ),
-    );
-  }
-}
-```
-
-You can now add a [`FirebasePhoneAuthHandler`](https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/lib/firebase_phone_auth_handler.dart) widget to your widget tree and pass all the required parameters to get started.
-```dart
-FirebasePhoneAuthHandler(
-    phoneNumber: "+919876543210",
-    builder: (context, controller) {
-        return SizedBox.shrink();
-    },
-),
-```
-
-The phone number is the number to which the OTP will be sent which should be formatted in the following way:
-
-+919876543210 - where +91 is the country code and 9876543210 is the phone number.
-
-The widget returned from the `builder` is rendered on the screen.
-The builder exposes a `controller` which contains various variables and methods.
-
-Callbacks such as `onLoginSuccess` or `onLoginFailed` can be passed to the widget.
-
-`onLoginSuccess` is called whenever the otp was sent to the mobile successfully and
-was either auto verified or verified manually by calling `verifyOTP` function in the
-controller. The callback exposes `UserCredential` object which can be used to find
-user UID and other stuff. The boolean provided is whether the OTP was auto verified or
-verified manually be calling `verifyOTP`. True if auto verified and false is verified manually.
-
-`onLoginFailed` is called if an error occurs while sending OTP or verifying the OTP
-or any internal error occurs, callback is triggered exposing `FirebaseAuthException`
-which can be used to handle the error.
-
-`onCodeSent` is called when the OTP is successfully sent to the phone number.
-
-```dart
-FirebasePhoneAuthHandler(
-    phoneNumber: "+919876543210",
-    // If true, the user is signed out before the onLoginSuccess callback is fired when the OTP is verified successfully.
-    signOutOnSuccessfulVerification: false,
-    
-    linkWithExistingUser: false,
-    builder: (context, controller) {
-      return SizedBox.shrink();
-    },
-    onLoginSuccess: (userCredential, autoVerified) {
-      debugPrint("autoVerified: $autoVerified");
-      debugPrint("Login success UID: ${userCredential.user?.uid}");
-    },
-    onLoginFailed: (authException, stackTrace) {
-      debugPrint("An error occurred: ${authException.message}");
-    },
-    onError: (error, stackTrace) {},
-),
-```
-
-To logout the current user(if any), simply call
-```dart
-await FirebasePhoneAuthHandler.signOut(context);
-```
-
-`controller.signOut()` can also be used to logout the current user if the functionality is needed in
-the same screen as the widget itself (where `controller` is the variable passed in the callback from the builder method in the widget).
-
-### Web (reCAPTCHA)
-
-By default, the reCAPTCHA widget is a fully managed flow which provides security to your web application.
+On Web, the reCAPTCHA widget is a fully managed flow which provides security to your web application.
 The widget will render as an invisible widget when the sign-in flow is triggered. An "invisible"
 widget will appear as a full-page modal on-top of your application like demonstrated below.
 
@@ -154,7 +108,7 @@ to check whether the current platform is Web or not.
 Example:
 ```dart
 recaptchaVerifierForWebProvider: (isWeb) {
-    if (isWeb) return RecaptchaVerifier();
+  if (isWeb) return RecaptchaVerifier();
 },
 ```
 
@@ -196,33 +150,80 @@ add this CSS style in the `web/index.html` outside any other tag.
 
 ```html
 <style>
-    .grecaptcha-badge { visibility: hidden; }
+  .grecaptcha-badge { visibility: hidden; }
 </style>
 ```
 
-#### How I prefer using it usually
-I usually have a phone number input field, which handles phone number input. Then pass the phone number
-to the [`VerifyPhoneNumberScreen`](https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/example/lib/main.dart#L24)
-widget from the example app.
+---
 
-```dart
-// probably some ui or dialog to get the phone number
-final phoneNumber = _getPhoneNumber();
+# ❓ Usage
 
-// then call
-void _verifyPhoneNumber() async {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => VerifyPhoneNumberScreen(phoneNumber: phoneNumber),
-    ),
-  );
-}
+1. Add [`firebase_phone_auth_handler`](https://pub.dev/packages/firebase_phone_auth_handler) as a dependency in your pubspec.yaml file.
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
 
-/// route to home screen or somewhere in the onLoginSuccess callback for [VerifyPhoneNumberScreen] 
+  firebase_phone_auth_handler:
 ```
 
-#### Sample Usage
+2. Wrap the `MaterialApp` with `FirebasePhoneAuthProvider` to enable your application to support phone authentication.
+```dart
+import 'package:firebase_phone_auth_handler/firebase_phone_auth_handler.dart';
+
+class _MainApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FirebasePhoneAuthProvider(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: HomeScreen(),
+      ),
+    );
+  }
+}
+```
+
+4. Use [`FirebasePhoneAuthHandler`](https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/lib/firebase_phone_auth_handler.dart) widget in your widget tree and pass all the required parameters to get started.
+```dart
+FirebasePhoneAuthHandler(
+  // required
+  phoneNumber: "+919876543210",
+  // If true, the user is signed out before the onLoginSuccess callback is fired when the OTP is verified successfully.
+  signOutOnSuccessfulVerification: false,
+  linkWithExistingUser: false,
+  // required
+  builder: (context, controller) {
+    return SizedBox.shrink();
+  },
+  onLoginSuccess: (userCredential, autoVerified) {
+    debugPrint("autoVerified: $autoVerified");
+    debugPrint("Login success UID: ${userCredential.user?.uid}");
+  },
+  onLoginFailed: (authException, stackTrace) {
+    debugPrint("An error occurred: ${authException.message}");
+  },
+  onError: (error, stackTrace) {},
+),
+```
+
+5. To logout the current user(if any), call
+```dart
+await FirebasePhoneAuthHandler.signOut(context);
+
+// OR
+
+controller.signOut(); // can also be used to logout the current user.
+```
+
+---
+
+# 🎯 Sample Usage
+
+See the [example](https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/example) app for a complete app. Learn how to setup the example app for testing [here](https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/example/README.md).
+
+Check out the full API reference of the widget [here](https://pub.dev/documentation/firebase_phone_auth_handler/latest/firebase_phone_auth_handler/FirebasePhoneAuthHandler-class.html).
+
 ```dart
 import 'package:firebase_phone_auth_handler/firebase_phone_auth_handler.dart';
 import 'package:flutter/material.dart';
@@ -237,9 +238,9 @@ class VerifyPhoneNumberScreen extends StatefulWidget {
   final String phoneNumber;
 
   const VerifyPhoneNumberScreen({
-    Key? key,
+    super.key,
     required this.phoneNumber,
-  }) : super(key: key);
+  });
 
   @override
   State<VerifyPhoneNumberScreen> createState() =>
@@ -268,7 +269,8 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
 
   @override
   void didChangeMetrics() {
-    final bottomViewInsets = WidgetsBinding.instance.window.viewInsets.bottom;
+    final bottomViewInsets = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
     isKeyboardVisible = bottomViewInsets > 0;
   }
 
@@ -293,6 +295,7 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
       child: FirebasePhoneAuthHandler(
         phoneNumber: widget.phoneNumber,
         signOutOnSuccessfulVerification: false,
+        sendOtpOnInitialize: true,
         linkWithExistingUser: false,
         autoRetrievalTimeOutDuration: const Duration(seconds: 60),
         otpExpirationDuration: const Duration(seconds: 60),
@@ -455,9 +458,11 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
 }
 ```
 
-See the [`example`](https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/example) directory for a complete sample app.
+---
 
-### Created & Maintained By `Rithik Bhandari`
+# 👤 Collaborators
 
-* GitHub: [@rithik-dev](https://github.com/rithik-dev)
-* LinkedIn: [@rithik-bhandari](https://www.linkedin.com/in/rithik-bhandari/)
+
+| Name | GitHub | Linkedin |
+|-----------------------------------|-------------------------------------|-------------------------------------|
+| Rithik Bhandari | [github/rithik-dev](https://github.com/rithik-dev) | [linkedin/rithik-bhandari](https://www.linkedin.com/in/rithik-bhandari) |

@@ -6,9 +6,9 @@ import 'package:provider/provider.dart';
 /// to enable your application to support phone authentication.
 class FirebasePhoneAuthProvider extends StatelessWidget {
   const FirebasePhoneAuthProvider({
-    Key? key,
+    super.key,
     required this.child,
-  }) : super(key: key);
+  });
 
   /// The child of the widget.
   final Widget child;

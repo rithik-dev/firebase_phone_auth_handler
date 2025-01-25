@@ -136,7 +136,9 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// object to handle the error.
   Future<bool> verifyOtp(String otp) async {
     if ((!kIsWeb && _verificationId == null) ||
-        (kIsWeb && _webConfirmationResult == null)) return false;
+        (kIsWeb && _webConfirmationResult == null)) {
+      return false;
+    }
 
     try {
       if (kIsWeb) {

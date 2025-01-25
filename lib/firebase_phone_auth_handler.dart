@@ -1,4 +1,4 @@
-library firebase_phone_auth_handler;
+library;
 
 export 'package:firebase_auth/firebase_auth.dart';
 

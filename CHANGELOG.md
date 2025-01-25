@@ -1,3 +1,7 @@
+# [1.1.0+1]
+
+* Fix dart static analysis warnings
+
 # [1.1.0]
 
 * Updated README.md

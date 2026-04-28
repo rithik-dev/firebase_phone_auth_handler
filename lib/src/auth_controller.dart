@@ -1,17 +1,20 @@
 part of 'auth_handler.dart';
 
 class FirebasePhoneAuthController extends ChangeNotifier {
+  /// Internal constructor for injection.
+  FirebasePhoneAuthController({FirebaseAuth? auth})
+      : _auth = auth ?? FirebaseAuth.instance;
+
+  final FirebaseAuth _auth;
+
   static FirebasePhoneAuthController _of(
-    BuildContext context, {
-    bool listen = true,
-  }) =>
+      BuildContext context, {
+        bool listen = true,
+      }) =>
       Provider.of<FirebasePhoneAuthController>(context, listen: listen);
 
   /// {@macro autoRetrievalTimeOutDuration}
   static const kAutoRetrievalTimeOutDuration = Duration(minutes: 1);
-
-  /// Firebase auth instance using the default [FirebaseApp].
-  static final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// Web confirmation result for OTP.
   ConfirmationResult? _webConfirmationResult;
@@ -93,7 +96,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// button, to let user request a new OTP.
   Duration get otpExpirationTimeLeft {
     final otpTickDuration = Duration(
-      seconds: (_otpExpirationTimer?.tick ?? 0),
+      seconds: _otpExpirationTimer?.tick ?? 0,
     );
     return _otpExpirationDuration - otpTickDuration;
   }
@@ -106,7 +109,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// the OTP, and requires user to manually enter it.
   Duration get autoRetrievalTimeLeft {
     final otpTickDuration = Duration(
-      seconds: (_otpAutoRetrievalTimer?.tick ?? 0),
+      seconds: _otpAutoRetrievalTimer?.tick ?? 0,
     );
     return _autoRetrievalTimeOutDuration - otpTickDuration;
   }
@@ -143,7 +146,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     try {
       if (kIsWeb) {
         final userCredential = await _webConfirmationResult!.confirm(otp);
-        return await _loginUser(
+        return _loginUser(
           userCredential: userCredential,
           autoVerified: false,
         );
@@ -152,7 +155,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
           verificationId: _verificationId!,
           smsCode: otp,
         );
-        return await _loginUser(
+        return _loginUser(
           authCredential: credential,
           autoVerified: false,
         );
@@ -181,16 +184,18 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// code send callback to be fired, and [sendOTP] will complete only after
   /// that callback is fired. Not applicable on web.
   Future<bool> sendOTP({bool shouldAwaitCodeSend = true}) async {
+    if (_phoneNumber == null) return false;
+
     Completer? codeSendCompleter;
 
     codeSent = false;
     await Future.delayed(Duration.zero, notifyListeners);
 
-    verificationCompletedCallback(AuthCredential authCredential) async {
+    void verificationCompletedCallback(AuthCredential authCredential) async {
       await _loginUser(authCredential: authCredential, autoVerified: true);
     }
 
-    verificationFailedCallback(FirebaseAuthException authException) {
+    void verificationFailedCallback(FirebaseAuthException authException) {
       final stackTrace = authException.stackTrace ?? StackTrace.current;
 
       if (codeSendCompleter != null && !codeSendCompleter.isCompleted) {
@@ -199,10 +204,10 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       _onLoginFailed?.call(authException, stackTrace);
     }
 
-    codeSentCallback(
-      String verificationId, [
-      int? forceResendingToken,
-    ]) async {
+    Future<void> codeSentCallback(
+        String verificationId, [
+          int? forceResendingToken,
+        ]) async {
       _verificationId = verificationId;
       _forceResendingToken = forceResendingToken;
       codeSent = true;
@@ -213,7 +218,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       _setTimer();
     }
 
-    codeAutoRetrievalTimeoutCallback(String verificationId) {
+    void codeAutoRetrievalTimeoutCallback(String verificationId) {
       _verificationId = verificationId;
     }
 
@@ -309,7 +314,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   void _setTimer() {
     _otpExpirationTimer = Timer.periodic(
       const Duration(seconds: 1),
-      (timer) {
+          (timer) {
         if (timer.tick == _otpExpirationDuration.inSeconds) {
           _otpExpirationTimer?.cancel();
         }
@@ -320,7 +325,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     );
     _otpAutoRetrievalTimer = Timer.periodic(
       const Duration(seconds: 1),
-      (timer) {
+          (timer) {
         if (timer.tick == _autoRetrievalTimeOutDuration.inSeconds) {
           _otpAutoRetrievalTimer?.cancel();
         }

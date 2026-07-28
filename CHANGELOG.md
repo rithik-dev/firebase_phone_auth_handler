@@ -1,3 +1,7 @@
+## 1.1.1 - 2026-07-28
+
+* Added GitHub Actions CI to automate version bumps, changelog updates, tagging and pub.dev publishing.
+
 ## 1.1.0+1 - 2025-01-25
 
 * Fix dart static analysis warnings

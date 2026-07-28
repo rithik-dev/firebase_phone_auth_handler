@@ -1,0 +1,17 @@
+name: Publish to pub.dev
+
+# Publishes the checked-out tag to pub.dev over OIDC — no credentials stored in this repo.
+# Normally dispatched by release.yml, pinned to the tag it just pushed.
+#
+# It is separate from release.yml because pub.dev only accepts a publish from a run that was
+# launched on a tag, and release.yml runs on master (see its header). Keeping it standalone also
+# means a failed publish can be retried by itself — Actions -> Publish to pub.dev -> Run workflow,
+# picking the tag in the ref selector — without cutting a second release.
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    permissions:
+      id-token: write # Required for authentication using OIDC
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1

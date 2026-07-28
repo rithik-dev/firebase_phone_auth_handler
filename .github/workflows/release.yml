@@ -1,0 +1,168 @@
+name: Release & Publish
+
+# Ships a new version of this package. Run it from Actions -> Release & Publish -> Run workflow.
+#
+# You write the release notes yourself in `.github/UNRELEASED.md` as you work. This workflow bumps
+# pubspec.yaml, moves those notes into CHANGELOG.md under the new version heading, empties the
+# pending file, tags, pushes, then dispatches publish.yml to run `dart pub publish`.
+#
+# Pending notes live in their own file, rather than an `## Unreleased` section inside CHANGELOG.md,
+# so that CHANGELOG.md never contains an empty heading — an empty `## Unreleased` at the top of the
+# published file renders as a stray heading on pub.dev's changelog tab. Keeping the file under
+# .github/ also means it never ships: hidden directories are excluded from the package archive, so
+# no .pubignore is needed. (Do not reach for .pubignore here — a root .pubignore makes
+# `dart pub publish` ignore the root .gitignore, which would drag example/build into the archive.)
+#
+# Why publishing is a separate workflow: pub.dev rejects any publish whose OIDC token has
+# `refType != 'tag'` (app/lib/package/backend.dart in dart-lang/pub-dev), for `push` and
+# `workflow_dispatch` alike. This job runs on refs/heads/master, and a run's ref is fixed at
+# launch, so it can never publish — that has to be a second run launched on the tag. We dispatch
+# it explicitly because a tag pushed with GITHUB_TOKEN doesn't fire `on: push` triggers.
+#
+# Tags produced here (`v1.2.3`) must match the tag pattern set on pub.dev's admin page:
+# `v{{version}}`.
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump (pub.dev rejects re-publishing an existing version, so every run must bump)'
+        required: true
+        default: patch
+        type: choice
+        options: [patch, minor, major]
+      allow_empty_changelog:
+        description: 'Release with .github/UNRELEASED.md empty (rare — e.g. a dependency-only rebuild)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  actions: write # needed to dispatch publish.yml
+
+concurrency:
+  group: release-pubdev
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: .fvmrc
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # Everything below this step mutates state, so a forgotten changelog entry is caught here,
+      # where re-running is free and leaves no dangling tag or half-finished release.
+      - name: Collect release notes
+        env:
+          ALLOW_EMPTY: ${{ inputs.allow_empty_changelog }}
+        run: |
+          if [ ! -f .github/UNRELEASED.md ]; then
+            echo "::error::.github/UNRELEASED.md is missing. Create it and put this release's notes in it." >&2
+            exit 1
+          fi
+
+          # Drop the instructional HTML comment, then trim leading and trailing blank lines.
+          awk '
+            /^[[:space:]]*<!--/ { next }
+            { line[++n] = $0 }
+            END {
+              for (i = 1; i <= n; i++) if (line[i] ~ /[^[:space:]]/) { first = i; break }
+              if (!first) exit # nothing but comments and blanks
+              for (i = n; i >= 1; i--) if (line[i] ~ /[^[:space:]]/) { last = i; break }
+              for (i = first; i <= last; i++) print line[i]
+            }
+          ' .github/UNRELEASED.md > "$RUNNER_TEMP/RELEASE_NOTES.md"
+
+          if [ ! -s "$RUNNER_TEMP/RELEASE_NOTES.md" ]; then
+            if [ "$ALLOW_EMPTY" != "true" ]; then
+              echo "::error file=.github/UNRELEASED.md::.github/UNRELEASED.md has no entries. Add them and re-run, or re-run with 'allow_empty_changelog' checked." >&2
+              exit 1
+            fi
+            # The version still gets a changelog section — it shipped, so it belongs in the
+            # history — but with a placeholder body rather than a bare heading. Everything
+            # downstream then has notes to work with, and CHANGELOG.md and the GitHub release
+            # say the same thing.
+            echo "* Maintenance release; no user-facing changes." > "$RUNNER_TEMP/RELEASE_NOTES.md"
+            echo "No pending entries; using a placeholder because allow_empty_changelog was checked."
+          fi
+
+      - run: flutter pub get
+
+      - name: Quality gate
+        run: |
+          dart format --output=none --set-exit-if-changed .
+          flutter analyze
+          if [ -d test ]; then flutter test; fi
+          flutter pub publish --dry-run
+
+      # cider (https://pub.dev/packages/cider) is Dart's missing `npm version`: it rewrites
+      # `version:` in pubspec.yaml and prints the result. It gets the cases a sed would fumble —
+      # dropping build metadata (1.0.5+1 -> 1.0.6), and refusing to go backwards.
+      # `tail -n1` guards against any leading noise on stdout corrupting GITHUB_OUTPUT.
+      - name: Bump version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          dart pub global activate cider
+          new_version=$(dart pub global run cider bump "$BUMP" | tail -n1)
+          echo "version=$new_version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$new_version" >> "$GITHUB_OUTPUT"
+
+      # Prepends the pending notes to CHANGELOG.md under the new version heading, then resets the
+      # pending file. RELEASE_NOTES.md is always non-empty by this point, so no branching here.
+      - name: Move pending notes into the changelog
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          {
+            echo "## $VERSION - $(date -u +%F)"
+            echo ""
+            cat "$RUNNER_TEMP/RELEASE_NOTES.md"
+            echo ""
+            cat CHANGELOG.md
+          } > "$RUNNER_TEMP/CHANGELOG.md"
+          mv "$RUNNER_TEMP/CHANGELOG.md" CHANGELOG.md
+
+          # This line is the canonical header — rewriting it rather than preserving whatever was
+          # there keeps the reset working even if the comment was edited or deleted.
+          cat > .github/UNRELEASED.md <<'EOF'
+          <!-- Pending release notes. The release workflow moves these into CHANGELOG.md under the new version heading, then clears this file. Write them for the people who use this package, using the same `* entry` bullet style as CHANGELOG.md. This file lives under .github/ so it never ships to pub.dev. -->
+          EOF
+
+      - name: Commit and tag
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git add pubspec.yaml CHANGELOG.md .github/UNRELEASED.md
+          git commit -m "chore(release): $TAG"
+          git tag -a "$TAG" -m "$TAG"
+
+      - name: Push commit and tag
+        run: git push --follow-tags
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: gh release create "$TAG" --title "$TAG" --notes-file "$RUNNER_TEMP/RELEASE_NOTES.md"
+
+      # Watch this run's result in Actions -> Publish to pub.dev; a failure there does not fail
+      # this workflow, and can be retried on its own against the tag.
+      - name: Dispatch pub.dev publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: gh workflow run publish.yml --ref "$TAG"

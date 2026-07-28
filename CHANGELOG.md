@@ -1,3 +1,7 @@
+## 1.1.2 - 2026-07-28
+
+* Maintenance release; no user-facing changes.
+
 ## 1.1.1 - 2026-07-28
 
 * Added GitHub Actions CI to automate version bumps, changelog updates, tagging and pub.dev publishing.

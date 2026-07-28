@@ -153,11 +153,25 @@ jobs:
       - name: Push commit and tag
         run: git push --follow-tags
 
+      # The pub.dev link is appended here rather than in CHANGELOG.md, which ships inside the
+      # package and has no business linking to itself. Note the link 404s for a minute or two:
+      # this release is created before the publish run below has finished uploading the version.
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
-        run: gh release create "$TAG" --title "$TAG" --notes-file "$RUNNER_TEMP/RELEASE_NOTES.md"
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          package=$(grep -m1 '^name:' pubspec.yaml | sed 's/^name:[[:space:]]*//')
+          {
+            cat "$RUNNER_TEMP/RELEASE_NOTES.md"
+            echo ""
+            echo "---"
+            echo ""
+            echo "[$package $VERSION on pub.dev](https://pub.dev/packages/$package/versions/$VERSION)"
+          } > "$RUNNER_TEMP/GH_RELEASE_NOTES.md"
+
+          gh release create "$TAG" --title "$TAG" --notes-file "$RUNNER_TEMP/GH_RELEASE_NOTES.md"
 
       # Watch this run's result in Actions -> Publish to pub.dev; a failure there does not fail
       # this workflow, and can be retried on its own against the tag.

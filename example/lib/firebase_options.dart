@@ -59,8 +59,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1086627119682',
     projectId: 'packages-demo-119b7',
     storageBucket: 'packages-demo-119b7.appspot.com',
-    androidClientId: '1086627119682-3a0smf3p0pcaf60pl2vd88da7afb5bq1.apps.googleusercontent.com',
-    iosClientId: '1086627119682-cpa5vejcfs9voe3bp0ltf9kdstkc375u.apps.googleusercontent.com',
+    androidClientId:
+        '1086627119682-3a0smf3p0pcaf60pl2vd88da7afb5bq1.apps.googleusercontent.com',
+    iosClientId:
+        '1086627119682-cpa5vejcfs9voe3bp0ltf9kdstkc375u.apps.googleusercontent.com',
     iosBundleId: 'com.example.phoneAuthHandlerDemo',
   );
 }

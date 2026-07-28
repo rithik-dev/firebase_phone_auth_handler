@@ -1,14 +1,14 @@
-# [1.1.0+1]
+## 1.1.0+1 - 2025-01-25
 
 * Fix dart static analysis warnings
 
-# [1.1.0]
+## 1.1.0 - 2024-10-07
 
 * Updated README.md
 * Updated dependencies
 * Updated example app
 
-# [1.0.8]
+## 1.0.8 - 2023-01-20
 
 * Added sendOtpOnInitialize parameter to the handler
 * Fixed OTP resend issue if the OTP expiration timer is still active
@@ -16,13 +16,13 @@
 * Added shouldAwaitCodeSend to the sendOTP fn to give more control over the function
 * Updated dependencies
 
-# [1.0.7]
+## 1.0.7 - 2022-10-24
 
 * Stacktrace in onLoginFailed is now non-nullable
 * Updated a dependency to the latest release
 * Updated example app
 
-# [1.0.6]
+## 1.0.6 - 2022-07-16
 
 * **BREAKING:** Added stack trace to onLoginFailed and onError callbacks
 * Added a boolean linkWithExistingUser to link the new credentials with an existing signed-in user, instead of creating a new one.
@@ -30,12 +30,12 @@
 * Updated example app
 * Updated dependencies
 
-# [1.0.5+1]
+## 1.0.5+1 - 2022-07-11
 
 * Fixed files formatting
 * Updated example app
 
-# [1.0.5]
+## 1.0.5 - 2022-07-10
 
 * **BREAKING:** Renamed flag timeOutDuration to autoRetrievalTimeOutDuration
 * **BREAKING:** Renamed verifyOTP to verifyOtp
@@ -48,18 +48,18 @@
 * Updated dependencies
 * Refactored code
 
-# [1.0.4]
+## 1.0.4 - 2022-06-07
 
 * Updated example app
 * Updated dependencies
 * Fixed linter warnings
 
-# [1.0.3]
+## 1.0.3 - 2022-05-03
 
 * Updated example app
 * Updated README.md
 
-# [1.0.2]
+## 1.0.2 - 2022-04-30
 
 * Renamed auth_service to auth_controller
 * Updated dependencies
@@ -67,24 +67,24 @@
 * Updated example app
 * Updated README.md
 
-# [1.0.1]
+## 1.0.1 - 2022-01-26
 
 * Updated license
 * Updated README.md
 
-# [1.0.0]
+## 1.0.0 - 2022-01-26
 
 * Added linter and updated code accordingly
 * Updated example app
 * Updated dependencies
 * Updated README.md
 
-# [0.0.8]
+## 0.0.8 - 2021-10-28
 
 * Updated dependencies
 * Updated example app
 
-# [0.0.7]
+## 0.0.7 - 2021-05-22
 
 * Renamed FirebasePhoneAuthSupporter to FirebasePhoneAuthProvider.
 * Supports sending OTP on web out of the box.
@@ -92,34 +92,34 @@
 * Updated README.md
 * Updated package description.
 
-# [0.0.6]
+## 0.0.6 - 2021-05-12
 
 * Added key parameter
 * Fixed README.md
 * Updated dependencies
 
-# [0.0.5]
+## 0.0.5 - 2021-04-23
 
 * Added boolean in onLoginSuccess to provide info whether OTP was auto fetched or verified manually
 * Updated example app
 * Updated README.md
 
-# [0.0.4]
+## 0.0.4 - 2021-04-21
 
 * Updated example app
 * Updated README.md
 
-# [0.0.3]
+## 0.0.3 - 2021-04-21
 
 * Updated screenshots
 * Updated package description
 
-# [0.0.2]
+## 0.0.2 - 2021-04-21
 
 * Added FirebasePhoneAuthSupporter which has to be wrapped above the MaterialApp in order for the app to support phone authentication.
 * Fixed sign out function
 * Updated README.md
 
-# [0.0.1]
+## 0.0.1 - 2021-04-20
 
 * An easy to use firebase phone authentication library to easily send and verify OTP's.

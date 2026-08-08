@@ -1,11 +1,11 @@
-name: Publish to pub.dev
+name: Publish to pub.dev (auto-run by Release)
 
 # Publishes the checked-out tag to pub.dev over OIDC — no credentials stored in this repo.
 # Normally dispatched by release.yml, pinned to the tag it just pushed.
 #
 # It is separate from release.yml because pub.dev only accepts a publish from a run that was
 # launched on a tag, and release.yml runs on master (see its header). Keeping it standalone also
-# means a failed publish can be retried by itself — Actions -> Publish to pub.dev -> Run workflow,
+# means a failed publish can be retried by itself — Actions -> Publish to pub.dev (auto-run by Release) -> Run workflow,
 # picking the tag in the ref selector — without cutting a second release.
 on:
   workflow_dispatch:

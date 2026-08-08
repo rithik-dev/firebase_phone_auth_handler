@@ -1,10 +1,12 @@
 # [FirebasePhoneAuthHandler](https://pub.dev/packages/firebase_phone_auth_handler) For Flutter
 [![pub package](https://img.shields.io/pub/v/firebase_phone_auth_handler.svg)](https://pub.dev/packages/firebase_phone_auth_handler)
+[![downloads](https://img.shields.io/pub/dm/firebase_phone_auth_handler)](https://pub.dev/packages/firebase_phone_auth_handler)
 [![likes](https://img.shields.io/pub/likes/firebase_phone_auth_handler)](https://pub.dev/packages/firebase_phone_auth_handler/score)
-[![popularity](https://img.shields.io/pub/popularity/firebase_phone_auth_handler)](https://pub.dev/packages/firebase_phone_auth_handler/score)
 [![pub points](https://img.shields.io/pub/points/firebase_phone_auth_handler)](https://pub.dev/packages/firebase_phone_auth_handler/score)
-[![code size](https://img.shields.io/github/languages/code-size/rithik-dev/firebase_phone_auth_handler)](https://github.com/rithik-dev/firebase_phone_auth_handler)
 [![license MIT](https://img.shields.io/badge/license-MIT-purple.svg)](https://opensource.org/licenses/MIT)
+
+<a href="https://rithikbhandari.dev" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/portfolio-rithikbhandari.dev-6C63FF?style=for-the-badge" alt="portfolio"></a>
+<a href="https://pub.dev/publishers/rithikbhandari.dev/packages" target="_blank" rel="noopener"><img src="https://img.shields.io/pub/publisher/firebase_phone_auth_handler?style=for-the-badge" alt="publisher"></a>
 
 ---
 
@@ -25,7 +27,7 @@ An easy-to-use firebase phone authentication package to easily send and verify O
   - [Web](#web-recaptcha)
 - **[❓ Usage](#-usage)**  
 - **[🎯 Sample Usage](#-sample-usage)**
-- **[👤 Collaborators](#-collaborators)**
+- **[👤 Author](#-author)**
 
 ---
 
@@ -33,7 +35,7 @@ An easy-to-use firebase phone authentication package to easily send and verify O
 
 | Demo | Sending OTP | Auto Fetch OTP |
 |-----------------------------------|-------------------------------------|-------------------------------------|
-| <img src="https://user-images.githubusercontent.com/56810766/166433323-39875cc4-440a-4556-9550-1b5ab4e8f310.gif" height="500"> | <img src="https://user-images.githubusercontent.com/56810766/115599396-33876600-a2f9-11eb-9516-d0f189b88a53.jpeg" height="500"> | <img src="https://user-images.githubusercontent.com/56810766/115599390-31bda280-a2f9-11eb-8990-d3df76d3aabc.jpg" height="500"> |
+| <img src="https://github.com/rithik-dev/firebase_phone_auth_handler/raw/master/screenshots/unpublished/demo.webp" height="500"> | <img src="https://github.com/rithik-dev/firebase_phone_auth_handler/raw/master/screenshots/published/sending_otp.webp" height="500"> | <img src="https://github.com/rithik-dev/firebase_phone_auth_handler/raw/master/screenshots/unpublished/auto_fetch_otp.webp" height="500"> |
 
 ---
 
@@ -716,9 +718,11 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen> with 
 
 ---
 
-# 👤 Collaborators
+# 👤 Author
 
+Built and maintained by **Rithik Bhandari**, a mobile developer building cross-platform apps with Flutter.
 
-| Name | GitHub | Linkedin |
-|-----------------------------------|-------------------------------------|-------------------------------------|
-| Rithik Bhandari | [github/rithik-dev](https://github.com/rithik-dev) | [linkedin/rithik-bhandari](https://www.linkedin.com/in/rithik-bhandari) |
+- 🌐 Portfolio: **[rithikbhandari.dev](https://rithikbhandari.dev)**
+- 📦 More packages: [pub.dev/publishers/rithikbhandari.dev](https://pub.dev/publishers/rithikbhandari.dev/packages)
+- 💻 GitHub: [@rithik-dev](https://github.com/rithik-dev)
+- 💼 LinkedIn: [rithik-bhandari](https://www.linkedin.com/in/rithik-bhandari)

@@ -1,0 +1,5 @@
+# Everything in this folder is excluded from the published package. It holds README-only assets
+# (the animation is too big to justify shipping to every consumer — see the comment on
+# `screenshots:` in pubspec.yaml). `*` rather than naming files individually, so a future addition
+# here is excluded by default instead of silently shipping if someone forgets to list it.
+*

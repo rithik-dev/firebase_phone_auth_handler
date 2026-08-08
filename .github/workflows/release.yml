@@ -48,7 +48,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # full history + tags
 
@@ -121,6 +121,11 @@ jobs:
           echo "version=$new_version" >> "$GITHUB_OUTPUT"
           echo "tag=v$new_version" >> "$GITHUB_OUTPUT"
 
+          # An example app depending on this package by path records the package version in its
+          # lockfile, so the bump leaves it stale. Re-resolving here keeps it in step; otherwise
+          # the next local build rewrites it and shows up as a dirty file out of nowhere.
+          flutter pub get
+
       # Prepends the pending notes to CHANGELOG.md under the new version heading, then resets the
       # pending file. RELEASE_NOTES.md is always non-empty by this point, so no branching here.
       - name: Move pending notes into the changelog
@@ -147,6 +152,8 @@ jobs:
           TAG: ${{ steps.version.outputs.tag }}
         run: |
           git add pubspec.yaml CHANGELOG.md .github/UNRELEASED.md
+          # Guarded: not every package has an example app.
+          if [ -f example/pubspec.lock ]; then git add example/pubspec.lock; fi
           git commit -m "chore(release): $TAG"
           git tag -a "$TAG" -m "$TAG"
 
@@ -173,7 +180,7 @@ jobs:
 
           gh release create "$TAG" --title "$TAG" --notes-file "$RUNNER_TEMP/GH_RELEASE_NOTES.md"
 
-      # Watch this run's result in Actions -> Publish to pub.dev; a failure there does not fail
+      # Watch this run's result in Actions -> Publish to pub.dev (auto-run by Release); a failure there does not fail
       # this workflow, and can be retried on its own against the tag.
       - name: Dispatch pub.dev publish
         env:

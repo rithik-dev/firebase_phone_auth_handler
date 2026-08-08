@@ -65,25 +65,21 @@ void main() {
       expect(controller.dispose, returnsNormally);
     });
 
-    test('sendOTP resolves to a terminal state instead of hanging', () async {
-      TestWidgetsFlutterBinding.ensureInitialized();
-
+    test('sendOTP throws on a controller with no phone number configured', () async {
       final controller = FirebasePhoneAuthController();
       addTearDown(controller.dispose);
 
-      // No Firebase app is initialised here, so reaching FirebaseAuth.instance
-      // throws. What matters is that the failure is caught and turned into a
-      // terminal status rather than leaving the controller in `sending` — the
-      // state that shows a loader forever.
-      final result = await controller
-          .sendOTP(codeSendTimeout: const Duration(milliseconds: 50))
-          .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () => fail('sendOTP hung instead of failing'),
-          );
-
-      expect(result, isFalse);
-      expect(controller.otpSendStatus, OtpSendStatus.failed);
+      // Reachable now that the constructor is public: a controller built
+      // directly, bypassing FirebasePhoneAuthHandler, never has _setData
+      // called on it. This must throw rather than silently return false —
+      // reaching this branch means _setData never ran, so onError/
+      // onLoginFailed are unset too, and a false return would fail with no
+      // signal anywhere.
+      //
+      // sendOTP is async, so the throw at its top surfaces as an error on the
+      // returned future, not synchronously to the caller — invoke it first,
+      // then assert against the future.
+      await expectLater(controller.sendOTP(), throwsA(isA<StateError>()));
     });
 
     test('kCodeSendTimeout is the documented default', () {
@@ -216,6 +212,16 @@ void main() {
       expect(controllers[1].autoRetrievalTimeLeft, const Duration(seconds: 90));
       expect(tester.takeException(), isNull);
     });
+
+    // A widget-test version of this ("sendOTP fails gracefully when the real
+    // FirebaseAuth is unreachable") was tried and removed: testWidgets runs
+    // under a fake-async clock that only advances via tester.pump(), so an
+    // un-pumped `.timeout()` on the returned future never fires, and whatever
+    // verifyPhoneNumber does against an uninitialised FirebaseAuth.instance
+    // inside a real widget-test binding just hangs — confirmed, it ran for
+    // 100+ real seconds before being killed. Testing that path properly needs
+    // a mocked FirebaseAuth injected via the `auth` parameter, not the real
+    // uninitialised instance.
 
     testWidgets('two handlers keep independent durations', (tester) async {
       late FirebasePhoneAuthController first;

@@ -228,6 +228,19 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     bool shouldAwaitCodeSend = true,
     Duration? codeSendTimeout = kCodeSendTimeout,
   }) async {
+    // Throws rather than returning false: reaching here means _setData never
+    // ran, so onError/onLoginFailed are unset too — a false return would fail
+    // silently.
+    if (_phoneNumber == null) {
+      throw StateError(
+        'sendOTP was called on a FirebasePhoneAuthController that was never '
+        'configured with a phone number. If this controller was constructed '
+        'directly instead of through FirebasePhoneAuthHandler, set one up '
+        'first — the widget does this in its initState before ever calling '
+        'sendOTP.',
+      );
+    }
+
     Completer<void>? codeSendCompleter;
 
     _otpSendStatus = OtpSendStatus.sending;

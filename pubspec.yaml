@@ -6,6 +6,14 @@ repository: https://github.com/rithik-dev/firebase_phone_auth_handler
 issue_tracker: https://github.com/rithik-dev/firebase_phone_auth_handler/issues
 documentation: https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/README.md
 
+# Path must point under screenshots/published/, not screenshots/unpublished/ (see the .pubignore
+# in that folder) or any hidden directory: pub.dev builds the search thumbnail and the package page
+# gallery from the file it actually receives, and `pub publish --dry-run` does not warn if the path
+# resolves locally but is excluded from what gets published — this fails silently.
+screenshots:
+  - description: 'Sending an OTP and verifying a phone number with FirebasePhoneAuthHandler.'
+    path: screenshots/published/sending_otp.webp
+
 topics:
   - flutter
   - firebase

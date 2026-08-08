@@ -209,9 +209,7 @@ class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
     _controller = FirebasePhoneAuthController(auth: widget.auth);
 
     RecaptchaVerifier? captcha;
-    if (widget.recaptchaVerifierForWebProvider != null) {
-      captcha = widget.recaptchaVerifierForWebProvider!(kIsWeb);
-    }
+    if (kIsWeb) captcha = widget.recaptchaVerifierForWebProvider?.call(true);
 
     _controller._setData(
       phoneNumber: widget.phoneNumber,

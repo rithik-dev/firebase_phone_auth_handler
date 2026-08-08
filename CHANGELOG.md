@@ -1,3 +1,7 @@
+## 2.0.1 - 2026-08-08
+
+* Maintenance release; no user-facing changes.
+
 ## 2.0.0 - 2026-08-08
 
 * **BREAKING:** Updated `firebase_auth` to `^6.5.6`. This package re-exports `firebase_auth`, so its breaking changes apply here too.

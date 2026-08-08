@@ -21,10 +21,9 @@ void log(
   dynamic msg,
   dynamic error,
   StackTrace? stackTrace,
-}) =>
-    devtools.log(
-      msg.toString(),
-      error: error,
-      name: screenId,
-      stackTrace: stackTrace,
-    );
+}) => devtools.log(
+  msg.toString(),
+  error: error,
+  name: screenId,
+  stackTrace: stackTrace,
+);

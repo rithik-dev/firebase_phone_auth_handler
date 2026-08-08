@@ -35,7 +35,7 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         elevation: _defaultElevation,
         systemOverlayStyle: systemUiOverlayStyle,
-        color: scaffoldBackgroundColor,
+        backgroundColor: scaffoldBackgroundColor,
         iconTheme: IconThemeData(color: textColor),
         actionsIconTheme: IconThemeData(color: textColor),
         titleTextStyle: TextStyle(
@@ -56,7 +56,7 @@ class AppTheme {
       //   selectionColor: accentColor?.withOpacity(0.75),
       //   selectionHandleColor: accentColor?.withOpacity(0.75),
       // ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         elevation: _defaultElevation,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
@@ -85,31 +85,34 @@ class AppTheme {
       // ),
       pageTransitionsTheme: PageTransitionsTheme(
         builders: <TargetPlatform, PageTransitionsBuilder>{
-          for (final targetValue in TargetPlatform.values)
-            targetValue: const _SlideLeftTransitionsBuilder(),
+          for (final targetValue in TargetPlatform.values) targetValue: const _SlideLeftTransitionsBuilder(),
         },
       ),
     );
   }
 
-  static final lightTheme = _baseTheme(
+  static final _lightBaseTheme = _baseTheme(
     Brightness.light,
     accentColor: const Color(0xFF0669F8),
     onAccentColor: Colors.white,
     scaffoldBackgroundColor: const Color(0xFFDCDFE2),
-  ).copyWith(
+  );
+
+  static final lightTheme = _lightBaseTheme.copyWith(
     cardColor: const Color(0xFFCACFD6),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: Color(0xFFFAFAFA),
     ),
   );
 
-  static final darkTheme = _baseTheme(
+  static final _darkBaseTheme = _baseTheme(
     Brightness.dark,
     accentColor: Colors.tealAccent,
     onAccentColor: Colors.black,
     scaffoldBackgroundColor: const Color(0xFF040F2D),
-  ).copyWith(
+  );
+
+  static final darkTheme = _darkBaseTheme.copyWith(
     cardColor: const Color(0xFF091642),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: Color(0xFF050C25),
@@ -121,17 +124,12 @@ class _SlideLeftTransitionsBuilder extends PageTransitionsBuilder {
   const _SlideLeftTransitionsBuilder();
 
   @override
-  Widget buildTransitions<T>(_, __, animation, ___, child) {
-    return SlideTransition(
-      position: CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeIn,
-        reverseCurve: Curves.easeOut,
-      ).drive(Tween<Offset>(
-        begin: const Offset(1, 0),
-        end: const Offset(0, 0),
-      )),
-      child: child,
-    );
-  }
+  Widget buildTransitions<T>(_, _, animation, _, child) => SlideTransition(
+    position: CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeIn,
+      reverseCurve: Curves.easeOut,
+    ).drive(Tween<Offset>(begin: const Offset(1, 0), end: const Offset(0, 0))),
+    child: child,
+  );
 }

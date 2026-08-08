@@ -1,17 +1,23 @@
 part of 'auth_handler.dart';
 
 class FirebasePhoneAuthController extends ChangeNotifier {
-  static FirebasePhoneAuthController _of(
-    BuildContext context, {
-    bool listen = true,
-  }) =>
-      Provider.of<FirebasePhoneAuthController>(context, listen: listen);
+  /// {@macro auth}
+  FirebasePhoneAuthController({
+    FirebaseAuth? auth,
+  }) : _customAuth = auth;
 
-  /// {@macro autoRetrievalTimeOutDuration}
-  static const kAutoRetrievalTimeOutDuration = Duration(minutes: 1);
+  /// Default value for [FirebasePhoneAuthHandler.autoRetrievalTimeOutDuration]
+  /// and [FirebasePhoneAuthHandler.otpExpirationDuration].
+  static const kAutoRetrievalTimeOutDuration = Duration(seconds: 60);
 
-  /// Firebase auth instance using the default [FirebaseApp].
-  static final FirebaseAuth _auth = FirebaseAuth.instance;
+  /// Default value for [sendOTP]'s `codeSendTimeout` parameter.
+  static const kCodeSendTimeout = Duration(seconds: 60);
+
+  /// {@macro auth}
+  final FirebaseAuth? _customAuth;
+
+  /// The [FirebaseAuth] instance every call in this controller goes through.
+  FirebaseAuth get _auth => _customAuth ?? FirebaseAuth.instance;
 
   /// Web confirmation result for OTP.
   ConfirmationResult? _webConfirmationResult;
@@ -19,7 +25,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// {@macro recaptchaVerifierForWeb}
   RecaptchaVerifier? _recaptchaVerifierForWeb;
 
-  /// The [_forceResendingToken] obtained from [codeSent]
+  /// The [_forceResendingToken] obtained from firebase's `codeSent`
   /// callback to force re-sending another verification SMS before the
   /// auto-retrieval timeout.
   int? _forceResendingToken;
@@ -36,11 +42,34 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// Timer object for OTP expiration.
   Timer? _otpExpirationTimer;
 
+  /// Guards against firebase never invoking any of the [sendOTP] callbacks.
+  Timer? _codeSendTimeoutTimer;
+
+  /// Whether this controller has been disposed.
+  ///
+  /// Guards against [notifyListeners] being called from a timer callback that
+  /// outlives the controller.
+  bool _disposed = false;
+
+  /// The state of the current OTP send operation.
+  OtpSendStatus _otpSendStatus = OtpSendStatus.idle;
+
+  /// The state of the current OTP send operation.
+  OtpSendStatus get otpSendStatus => _otpSendStatus;
+
   /// Whether OTP to the given phoneNumber is sent or not.
-  bool codeSent = false;
+  bool get codeSent => _otpSendStatus == OtpSendStatus.sent;
 
   /// Whether OTP is being sent to the given phoneNumber.
-  bool get isSendingCode => !codeSent;
+  bool get isSendingCode => _otpSendStatus == OtpSendStatus.sending;
+
+  /// Sets [_otpSendStatus] and rebuilds listeners.
+  void _setOtpSendStatus(OtpSendStatus value) {
+    if (_otpSendStatus == value) return;
+    _otpSendStatus = value;
+
+    _safeNotifyListeners();
+  }
 
   /// Whether the current platform is web or not;
   bool get isWeb => kIsWeb;
@@ -92,9 +121,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// [_otpExpirationDuration.inSeconds]s till 0, and can show the resend
   /// button, to let user request a new OTP.
   Duration get otpExpirationTimeLeft {
-    final otpTickDuration = Duration(
-      seconds: (_otpExpirationTimer?.tick ?? 0),
-    );
+    final otpTickDuration = Duration(seconds: (_otpExpirationTimer?.tick ?? 0));
     return _otpExpirationDuration - otpTickDuration;
   }
 
@@ -115,14 +142,28 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   bool get isOtpExpired => !(_otpExpirationTimer?.isActive ?? false);
 
   /// Whether the otp retrieval timer is active or not.
-  bool get isListeningForOtpAutoRetrieve =>
-      _otpAutoRetrievalTimer?.isActive ?? false;
+  bool get isListeningForOtpAutoRetrieve => _otpAutoRetrievalTimer?.isActive ?? false;
 
   /// {@macro autoRetrievalTimeOutDuration}
-  static Duration _autoRetrievalTimeOutDuration = kAutoRetrievalTimeOutDuration;
+  Duration _autoRetrievalTimeOutDuration = kAutoRetrievalTimeOutDuration;
 
   /// {@macro otpExpirationDuration}
-  static Duration _otpExpirationDuration = kAutoRetrievalTimeOutDuration;
+  Duration _otpExpirationDuration = kAutoRetrievalTimeOutDuration;
+
+  /// Calls [notifyListeners] unless this controller has already been disposed.
+  void _safeNotifyListeners() {
+    if (_disposed) return;
+
+    try {
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  /// Marks the send-code operation as failed and rebuilds listeners.
+  ///
+  /// The error itself is reported separately through [_onLoginFailed] or
+  /// [_onError] by the caller.
+  void _markSendFailed() => _setOtpSendStatus(OtpSendStatus.failed);
 
   /// Verify the OTP sent to [_phoneNumber] and login user is OTP was correct.
   ///
@@ -135,8 +176,7 @@ class FirebasePhoneAuthController extends ChangeNotifier {
   /// Also, [_onLoginFailed] is called with [FirebaseAuthException]
   /// object to handle the error.
   Future<bool> verifyOtp(String otp) async {
-    if ((!kIsWeb && _verificationId == null) ||
-        (kIsWeb && _webConfirmationResult == null)) {
+    if ((!kIsWeb && _verificationId == null) || (kIsWeb && _webConfirmationResult == null)) {
       return false;
     }
 
@@ -166,32 +206,49 @@ class FirebasePhoneAuthController extends ChangeNotifier {
     }
   }
 
-  /// Send OTP to the given [_phoneNumber].
+  /// Sends an OTP to [_phoneNumber].
   ///
-  /// Returns true if OTP was sent successfully.
+  /// Returns true on success. On failure, [_onLoginFailed] is called for a
+  /// [FirebaseAuthException], or [_onError] for anything else.
   ///
-  /// If for any reason, the OTP is not send,
-  /// [_onLoginFailed] is called with [FirebaseAuthException]
-  /// object to handle the error.
+  /// [shouldAwaitCodeSend] controls whether this completes as soon as
+  /// firebase's own request completes (`false`), or only once the code has
+  /// actually been sent — the `codeSent` callback has fired (`true`, the
+  /// default). Not applicable on web, which has no separate "sent" event.
   ///
-  /// [shouldAwaitCodeSend] can be used to await the OTP send.
-  /// The firebase method completes early, and if [shouldAwaitCodeSend] is false,
-  /// [sendOTP] will complete early, and the OTP will be sent in the background.
-  /// Whereas, if [shouldAwaitCodeSend] is true, [sendOTP] will wait for the
-  /// code send callback to be fired, and [sendOTP] will complete only after
-  /// that callback is fired. Not applicable on web.
-  Future<bool> sendOTP({bool shouldAwaitCodeSend = true}) async {
-    Completer? codeSendCompleter;
+  /// [codeSendTimeout] bounds how long this waits for firebase to report the
+  /// code as sent or failed. Firebase does not guarantee it calls back at all
+  /// — for example on Android with no SHA-1 fingerprint registered, neither
+  /// `codeSent` nor `verificationFailed` ever fires, and the controller would
+  /// otherwise stay in [OtpSendStatus.sending] forever. On timeout,
+  /// [otpSendStatus] becomes [OtpSendStatus.failed] and [_onError] receives a
+  /// [TimeoutException]. Defaults to [kCodeSendTimeout] (60 seconds); pass
+  /// null to wait indefinitely.
+  Future<bool> sendOTP({
+    bool shouldAwaitCodeSend = true,
+    Duration? codeSendTimeout = kCodeSendTimeout,
+  }) async {
+    Completer<void>? codeSendCompleter;
 
-    codeSent = false;
-    await Future.delayed(Duration.zero, notifyListeners);
+    _otpSendStatus = OtpSendStatus.sending;
+    _codeSendTimeoutTimer?.cancel();
+    await Future.delayed(Duration.zero, _safeNotifyListeners);
 
-    verificationCompletedCallback(AuthCredential authCredential) async {
+    void verificationCompletedCallback(AuthCredential authCredential) async {
+      _codeSendTimeoutTimer?.cancel();
+      _setOtpSendStatus(OtpSendStatus.sent);
+      if (codeSendCompleter != null && !codeSendCompleter.isCompleted) {
+        codeSendCompleter.complete();
+      }
+
       await _loginUser(authCredential: authCredential, autoVerified: true);
     }
 
-    verificationFailedCallback(FirebaseAuthException authException) {
+    void verificationFailedCallback(FirebaseAuthException authException) {
       final stackTrace = authException.stackTrace ?? StackTrace.current;
+
+      _codeSendTimeoutTimer?.cancel();
+      _markSendFailed();
 
       if (codeSendCompleter != null && !codeSendCompleter.isCompleted) {
         codeSendCompleter.completeError(authException, stackTrace);
@@ -199,13 +256,11 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       _onLoginFailed?.call(authException, stackTrace);
     }
 
-    codeSentCallback(
-      String verificationId, [
-      int? forceResendingToken,
-    ]) async {
+    void codeSentCallback(String verificationId, [int? forceResendingToken]) async {
+      _codeSendTimeoutTimer?.cancel();
       _verificationId = verificationId;
       _forceResendingToken = forceResendingToken;
-      codeSent = true;
+      _setOtpSendStatus(OtpSendStatus.sent);
       _onCodeSent?.call();
       if (codeSendCompleter != null && !codeSendCompleter.isCompleted) {
         codeSendCompleter.complete();
@@ -213,21 +268,51 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       _setTimer();
     }
 
-    codeAutoRetrievalTimeoutCallback(String verificationId) {
+    void codeAutoRetrievalTimeoutCallback(String verificationId) {
       _verificationId = verificationId;
     }
 
     try {
       if (kIsWeb) {
-        _webConfirmationResult = await _auth.signInWithPhoneNumber(
+        // The web API returns a future rather than firing callbacks, so the
+        // timeout applies to that future directly.
+        Future<ConfirmationResult> request = _auth.signInWithPhoneNumber(
           _phoneNumber!,
           _recaptchaVerifierForWeb,
         );
-        codeSent = true;
+
+        if (codeSendTimeout != null) request = request.timeout(codeSendTimeout);
+
+        _webConfirmationResult = await request;
+        _setOtpSendStatus(OtpSendStatus.sent);
         _onCodeSent?.call();
         _setTimer();
       } else {
-        codeSendCompleter = Completer();
+        codeSendCompleter = Completer<void>();
+
+        // Firebase may never invoke any callback at all (see codeSendTimeout).
+        // Nothing below awaits unconditionally, so this timer is what rescues
+        // the controller from sitting in `sending` forever.
+        if (codeSendTimeout != null) {
+          final completer = codeSendCompleter;
+          _codeSendTimeoutTimer = Timer(codeSendTimeout, () {
+            if (completer.isCompleted) return;
+
+            final error = TimeoutException(
+              'Firebase did not report the OTP as sent or failed within '
+              '${codeSendTimeout.inSeconds}s. This usually means device '
+              'verification could not complete — on Android, check that the '
+              "app's SHA-1/SHA-256 fingerprints are registered in the Firebase "
+              'console, or use a test phone number.',
+              codeSendTimeout,
+            );
+
+            final stackTrace = StackTrace.current;
+            _markSendFailed();
+            completer.completeError(error, stackTrace);
+            _onError?.call(error, stackTrace);
+          });
+        }
 
         await _auth.verifyPhoneNumber(
           phoneNumber: _phoneNumber!,
@@ -239,20 +324,28 @@ class FirebasePhoneAuthController extends ChangeNotifier {
           forceResendingToken: _forceResendingToken,
         );
 
-        if (shouldAwaitCodeSend) await codeSendCompleter.future;
+        if (shouldAwaitCodeSend) {
+          try {
+            await codeSendCompleter.future;
+          } catch (_) {
+            // verificationFailedCallback has already reported this error to
+            // _onLoginFailed. Rethrowing it here would deliver it twice.
+            return false;
+          }
+        } else {
+          codeSendCompleter.future.ignore();
+        }
       }
 
       return true;
     } on FirebaseAuthException catch (e, s) {
-      if (codeSendCompleter != null && !codeSendCompleter.isCompleted) {
-        codeSendCompleter.completeError(e, s);
-      }
+      _codeSendTimeoutTimer?.cancel();
+      _markSendFailed();
       _onLoginFailed?.call(e, s);
       return false;
     } catch (e, s) {
-      if (codeSendCompleter != null && !codeSendCompleter.isCompleted) {
-        codeSendCompleter.completeError(e, s);
-      }
+      _codeSendTimeoutTimer?.cancel();
+      _markSendFailed();
       _onError?.call(e, s);
       return false;
     }
@@ -286,9 +379,15 @@ class FirebasePhoneAuthController extends ChangeNotifier {
       late final UserCredential authResult;
 
       if (_linkWithExistingUser) {
-        authResult = await _auth.currentUser!.linkWithCredential(
-          authCredential!,
-        );
+        final currentUser = _auth.currentUser;
+        if (currentUser == null) {
+          throw StateError(
+            'linkWithExistingUser was true but no user is currently signed in. '
+            'Sign a user in before linking a phone credential to it.',
+          );
+        }
+
+        authResult = await currentUser.linkWithCredential(authCredential!);
       } else {
         authResult = await _auth.signInWithCredential(authCredential!);
       }
@@ -307,59 +406,61 @@ class FirebasePhoneAuthController extends ChangeNotifier {
 
   /// Set timer after code sent.
   void _setTimer() {
-    _otpExpirationTimer = Timer.periodic(
-      const Duration(seconds: 1),
-      (timer) {
-        if (timer.tick == _otpExpirationDuration.inSeconds) {
-          _otpExpirationTimer?.cancel();
-        }
-        try {
-          notifyListeners();
-        } catch (_) {}
-      },
-    );
-    _otpAutoRetrievalTimer = Timer.periodic(
-      const Duration(seconds: 1),
-      (timer) {
-        if (timer.tick == _autoRetrievalTimeOutDuration.inSeconds) {
-          _otpAutoRetrievalTimer?.cancel();
-        }
-        try {
-          notifyListeners();
-        } catch (_) {}
-      },
-    );
-    notifyListeners();
+    _otpExpirationTimer?.cancel();
+    _otpExpirationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (timer.tick == _otpExpirationDuration.inSeconds) {
+        timer.cancel();
+      }
+
+      _safeNotifyListeners();
+    });
+
+    _otpAutoRetrievalTimer?.cancel();
+    _otpAutoRetrievalTimer = Timer.periodic(const Duration(seconds: 1), (
+      timer,
+    ) {
+      if (timer.tick == _autoRetrievalTimeOutDuration.inSeconds) {
+        timer.cancel();
+      }
+
+      _safeNotifyListeners();
+    });
+
+    _safeNotifyListeners();
   }
 
   /// {@macro signOut}
-  Future<void> signOut() async {
-    await _auth.signOut();
-    // notifyListeners();
-  }
+  Future<void> signOut() => _auth.signOut();
 
-  /// Clear all data
-  void clear() {
+  @override
+  void dispose() {
+    _disposed = true;
+
     if (kIsWeb) {
       _recaptchaVerifierForWeb?.clear();
       _recaptchaVerifierForWeb = null;
     }
-    codeSent = false;
+
+    _otpSendStatus = OtpSendStatus.idle;
     _webConfirmationResult = null;
     _onLoginSuccess = null;
     _onLoginFailed = null;
     _onError = null;
     _onCodeSent = null;
     _signOutOnSuccessfulVerification = false;
-    // _forceResendingToken = null;
+    _forceResendingToken = null;
     _otpExpirationTimer?.cancel();
     _otpExpirationTimer = null;
     _otpAutoRetrievalTimer?.cancel();
     _otpAutoRetrievalTimer = null;
+    _codeSendTimeoutTimer?.cancel();
+    _codeSendTimeoutTimer = null;
     _phoneNumber = null;
     _linkWithExistingUser = false;
     _autoRetrievalTimeOutDuration = kAutoRetrievalTimeOutDuration;
     _otpExpirationDuration = kAutoRetrievalTimeOutDuration;
     _verificationId = null;
+
+    super.dispose();
   }
 }

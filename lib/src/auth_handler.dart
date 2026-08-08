@@ -21,12 +21,31 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
     this.signOutOnSuccessfulVerification = false,
     this.sendOtpOnInitialize = true,
     this.linkWithExistingUser = false,
-    this.autoRetrievalTimeOutDuration =
-        FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
-    this.otpExpirationDuration =
-        FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
+    this.autoRetrievalTimeOutDuration = FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
+    this.otpExpirationDuration = FirebasePhoneAuthController.kAutoRetrievalTimeOutDuration,
     this.recaptchaVerifierForWebProvider,
+    this.auth,
   });
+
+  /// {@template auth}
+  ///
+  /// The [FirebaseAuth] instance to authenticate against.
+  ///
+  /// Defaults to [FirebaseAuth.instance], which uses the default [FirebaseApp].
+  /// Pass one explicitly to verify against a secondary Firebase app:
+  ///
+  /// ```dart
+  /// final secondary = await Firebase.initializeApp(name: 'secondary', options: ...);
+  ///
+  /// FirebasePhoneAuthHandler(
+  ///   auth: FirebaseAuth.instanceFor(app: secondary),
+  ///   phoneNumber: '+911234567890',
+  ///   builder: (context, controller) => ...,
+  /// );
+  /// ```
+  ///
+  /// {@endtemplate}
+  final FirebaseAuth? auth;
 
   /// {@template phoneNumber}
   ///
@@ -171,55 +190,58 @@ class FirebasePhoneAuthHandler extends StatefulWidget {
   /// Signs out the current user.
   ///
   /// {@endtemplate}
-  static Future<void> signOut(BuildContext context) =>
-      FirebasePhoneAuthController._of(context, listen: false).signOut();
+  ///
+  /// Signs out of [auth], which defaults to [FirebaseAuth.instance]. Pass the
+  /// same instance given to the handler when using a secondary Firebase app.
+  static Future<void> signOut({FirebaseAuth? auth}) => (auth ?? FirebaseAuth.instance).signOut();
 
   @override
-  State<FirebasePhoneAuthHandler> createState() =>
-      _FirebasePhoneAuthHandlerState();
+  State<FirebasePhoneAuthHandler> createState() => _FirebasePhoneAuthHandlerState();
 }
 
 class _FirebasePhoneAuthHandlerState extends State<FirebasePhoneAuthHandler> {
+  late final FirebasePhoneAuthController _controller;
+
   @override
   void initState() {
-    (() async {
-      final con = FirebasePhoneAuthController._of(context, listen: false);
-
-      RecaptchaVerifier? captcha;
-      if (widget.recaptchaVerifierForWebProvider != null) {
-        captcha = widget.recaptchaVerifierForWebProvider!(kIsWeb);
-      }
-
-      con._setData(
-        phoneNumber: widget.phoneNumber,
-        onLoginSuccess: widget.onLoginSuccess,
-        onLoginFailed: widget.onLoginFailed,
-        onError: widget.onError,
-        autoRetrievalTimeOutDuration: widget.autoRetrievalTimeOutDuration,
-        otpExpirationDuration: widget.otpExpirationDuration,
-        onCodeSent: widget.onCodeSent,
-        linkWithExistingUser: widget.linkWithExistingUser,
-        signOutOnSuccessfulVerification: widget.signOutOnSuccessfulVerification,
-        recaptchaVerifierForWeb: captcha,
-      );
-
-      if (widget.sendOtpOnInitialize) await con.sendOTP();
-    })();
     super.initState();
+
+    _controller = FirebasePhoneAuthController(auth: widget.auth);
+
+    RecaptchaVerifier? captcha;
+    if (widget.recaptchaVerifierForWebProvider != null) {
+      captcha = widget.recaptchaVerifierForWebProvider!(kIsWeb);
+    }
+
+    _controller._setData(
+      phoneNumber: widget.phoneNumber,
+      onLoginSuccess: widget.onLoginSuccess,
+      onLoginFailed: widget.onLoginFailed,
+      onError: widget.onError,
+      autoRetrievalTimeOutDuration: widget.autoRetrievalTimeOutDuration,
+      otpExpirationDuration: widget.otpExpirationDuration,
+      onCodeSent: widget.onCodeSent,
+      linkWithExistingUser: widget.linkWithExistingUser,
+      signOutOnSuccessfulVerification: widget.signOutOnSuccessfulVerification,
+      recaptchaVerifierForWeb: captcha,
+    );
+
+    if (widget.sendOtpOnInitialize) unawaited(_controller.sendOTP());
   }
 
   @override
-  void deactivate() {
-    try {
-      FirebasePhoneAuthController._of(context, listen: false).clear();
-    } catch (_) {}
-    super.deactivate();
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<FirebasePhoneAuthController>(
-      builder: (context, controller, _) => widget.builder(context, controller),
+    return ChangeNotifierProvider<FirebasePhoneAuthController>.value(
+      value: _controller,
+      child: Consumer<FirebasePhoneAuthController>(
+        builder: (context, controller, _) => widget.builder(context, controller),
+      ),
     );
   }
 }

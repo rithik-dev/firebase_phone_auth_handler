@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
               ),
               EasyContainer(
                 onTap: () async {
-                  await FirebasePhoneAuthHandler.signOut(context);
+                  await FirebasePhoneAuthHandler.signOut();
                   showSnackBar('Logged out successfully!');
 
                   if (context.mounted) {

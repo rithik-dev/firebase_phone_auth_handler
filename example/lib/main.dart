@@ -1,5 +1,4 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_phone_auth_handler/firebase_phone_auth_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:phone_auth_handler_demo/firebase_options.dart';
 import 'package:phone_auth_handler_demo/screens/splash_screen.dart';
@@ -17,17 +16,13 @@ class _MainApp extends StatelessWidget {
   const _MainApp();
 
   @override
-  Widget build(BuildContext context) {
-    return FirebasePhoneAuthProvider(
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'FirebasePhoneAuthHandler Demo',
-        scaffoldMessengerKey: Globals.scaffoldMessengerKey,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: SplashScreen.id,
-      ),
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+    debugShowCheckedModeBanner: false,
+    title: 'FirebasePhoneAuthHandler Demo',
+    scaffoldMessengerKey: Globals.scaffoldMessengerKey,
+    theme: AppTheme.lightTheme,
+    darkTheme: AppTheme.darkTheme,
+    onGenerateRoute: RouteGenerator.generateRoute,
+    initialRoute: SplashScreen.id,
+  );
 }

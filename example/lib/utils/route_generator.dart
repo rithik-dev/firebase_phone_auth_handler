@@ -25,8 +25,7 @@ class RouteGenerator {
     }
   }
 
-  static MaterialPageRoute _route(Widget widget) =>
-      MaterialPageRoute(builder: (context) => widget);
+  static MaterialPageRoute _route(Widget widget) => MaterialPageRoute(builder: (context) => widget);
 
   static Route<dynamic> _errorRoute(String? name) {
     return MaterialPageRoute(

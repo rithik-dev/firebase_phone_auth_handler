@@ -16,12 +16,10 @@ class VerifyPhoneNumberScreen extends StatefulWidget {
   });
 
   @override
-  State<VerifyPhoneNumberScreen> createState() =>
-      _VerifyPhoneNumberScreenState();
+  State<VerifyPhoneNumberScreen> createState() => _VerifyPhoneNumberScreenState();
 }
 
-class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
-    with WidgetsBindingObserver {
+class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen> with WidgetsBindingObserver {
   bool isKeyboardVisible = false;
 
   late final ScrollController scrollController;
@@ -42,8 +40,7 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
 
   @override
   void didChangeMetrics() {
-    final bottomViewInsets = WidgetsBinding
-        .instance.platformDispatcher.views.first.viewInsets.bottom;
+    final bottomViewInsets = WidgetsBinding.instance.platformDispatcher.views.first.viewInsets.bottom;
     isKeyboardVisible = bottomViewInsets > 0;
   }
 
@@ -78,9 +75,7 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
         onLoginSuccess: (userCredential, autoVerified) async {
           log(
             VerifyPhoneNumberScreen.id,
-            msg: autoVerified
-                ? 'OTP was fetched automatically!'
-                : 'OTP was verified manually!',
+            msg: autoVerified ? 'OTP was fetched automatically!' : 'OTP was verified manually!',
           );
 
           showSnackBar('Phone number verified successfully!');
@@ -142,87 +137,109 @@ class _VerifyPhoneNumberScreenState extends State<VerifyPhoneNumberScreen>
                           }
                         : null,
                     child: Text(
-                      controller.isOtpExpired
-                          ? 'Resend'
-                          : '${controller.otpExpirationTimeLeft.inSeconds}s',
+                      controller.isOtpExpired ? 'Resend' : '${controller.otpExpirationTimeLeft.inSeconds}s',
                       style: const TextStyle(color: Colors.blue, fontSize: 18),
                     ),
                   ),
                 const SizedBox(width: 5),
               ],
             ),
-            body: controller.isSendingCode
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: const [
-                      CustomLoader(),
-                      SizedBox(height: 50),
-                      Center(
-                        child: Text(
-                          'Sending OTP',
-                          style: TextStyle(fontSize: 25),
-                        ),
+            body: switch (controller.otpSendStatus) {
+              // Nothing in flight: either the OTP was never requested, or the
+              // last attempt failed. Both need an affordance to (re)send —
+              // previously these states rendered a loader that never cleared.
+              OtpSendStatus.idle || OtpSendStatus.failed => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      controller.otpSendStatus == OtpSendStatus.failed
+                          ? 'Could not send the OTP.'
+                          : 'Tap below to send the OTP.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: controller.sendOTP,
+                      child: Text(
+                        controller.otpSendStatus == OtpSendStatus.failed ? 'Retry' : 'Send OTP',
                       ),
-                    ],
-                  )
-                : ListView(
-                    padding: const EdgeInsets.all(20),
-                    controller: scrollController,
-                    children: [
-                      Text(
-                        "We've sent an SMS with a verification code to ${widget.phoneNumber}",
-                        style: const TextStyle(fontSize: 25),
-                      ),
-                      const SizedBox(height: 10),
-                      const Divider(),
-                      if (controller.isListeningForOtpAutoRetrieve)
-                        Column(
-                          children: const [
-                            CustomLoader(),
-                            SizedBox(height: 50),
-                            Text(
-                              'Listening for OTP',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 25,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(height: 15),
-                            Divider(),
-                            Text('OR', textAlign: TextAlign.center),
-                            Divider(),
-                          ],
-                        ),
-                      const SizedBox(height: 15),
-                      const Text(
-                        'Enter OTP',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      PinInputField(
-                        length: 6,
-                        onFocusChange: (hasFocus) async {
-                          if (hasFocus) await _scrollToBottomOnKeyboardOpen();
-                        },
-                        onSubmit: (enteredOtp) async {
-                          final verified =
-                              await controller.verifyOtp(enteredOtp);
-                          if (verified) {
-                            // number verify success
-                            // will call onLoginSuccess handler
-                          } else {
-                            // phone verification failed
-                            // will call onLoginFailed or onError callbacks with the error
-                          }
-                        },
-                      ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+              OtpSendStatus.sending => Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: const [
+                  CustomLoader(),
+                  SizedBox(height: 50),
+                  Center(
+                    child: Text(
+                      'Sending OTP',
+                      style: TextStyle(fontSize: 25),
+                    ),
                   ),
+                ],
+              ),
+              OtpSendStatus.sent => ListView(
+                padding: const EdgeInsets.all(20),
+                controller: scrollController,
+                children: [
+                  Text(
+                    "We've sent an SMS with a verification code to ${widget.phoneNumber}",
+                    style: const TextStyle(fontSize: 25),
+                  ),
+                  const SizedBox(height: 10),
+                  const Divider(),
+                  if (controller.isListeningForOtpAutoRetrieve)
+                    Column(
+                      children: const [
+                        CustomLoader(),
+                        SizedBox(height: 50),
+                        Text(
+                          'Listening for OTP',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 25,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 15),
+                        Divider(),
+                        Text('OR', textAlign: TextAlign.center),
+                        Divider(),
+                      ],
+                    ),
+                  const SizedBox(height: 15),
+                  const Text(
+                    'Enter OTP',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  PinInputField(
+                    length: 6,
+                    onFocusChange: (hasFocus) async {
+                      if (hasFocus) await _scrollToBottomOnKeyboardOpen();
+                    },
+                    onSubmit: (enteredOtp) async {
+                      final verified = await controller.verifyOtp(enteredOtp);
+                      if (verified) {
+                        // number verify success
+                        // will call onLoginSuccess handler
+                      } else {
+                        // phone verification failed
+                        // will call onLoginFailed or onError callbacks with the error
+                      }
+                    },
+                  ),
+                ],
+              ),
+            },
           );
         },
       ),

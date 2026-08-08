@@ -4,8 +4,9 @@ version: 1.1.2
 homepage: https://github.com/rithik-dev/firebase_phone_auth_handler
 repository: https://github.com/rithik-dev/firebase_phone_auth_handler
 issue_tracker: https://github.com/rithik-dev/firebase_phone_auth_handler/issues
-# documentation: https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/README.md
-topics: 
+documentation: https://github.com/rithik-dev/firebase_phone_auth_handler/blob/master/README.md
+
+topics:
   - flutter
   - firebase
   - widget
@@ -13,24 +14,21 @@ topics:
   - authentication
 
 environment:
-  # constraints from firebase_auth and provider dependencies
-  sdk: '>=3.2.0 <4.0.0'
-  flutter: '>=3.16.0'
-
-scripts:
-  pre_publish: dart format .; flutter pub publish --dry-run
-  publish_skip_validation: flutter pub publish --skip-validation
-  publish: flutter pub publish
+  sdk: ^3.8.0
+  flutter: '>=3.32.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
-  provider: ^6.1.2
-  firebase_auth: ^5.3.1
+  provider: ^6.1.5+1
+  firebase_auth: ^6.5.6
 
 dev_dependencies:
-  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
 
 false_secrets:
   - /example/android/app/google-services.json
